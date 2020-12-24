@@ -1,5 +1,7 @@
 use clap::{App, load_yaml, crate_version, crate_authors};
 
+pub mod model;
+
 fn main() {
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from(yaml)
