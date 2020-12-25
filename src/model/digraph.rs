@@ -2,23 +2,26 @@ use std::collections::HashMap;
 
 type Labels = HashMap<String, String>;
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum DigraphError {
     DuplicateId,
     IdDoesNotExist,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Digraph {
     pub nodes: Vec<Node>,
     pub links: Vec<Link>,
     pub labels: Labels,
 }
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Node {
     pub id: i32,
     pub labels: Labels,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Link {
     pub id: i32,
     pub source: i32,
@@ -64,24 +67,21 @@ impl Digraph {
     }
 
     pub fn add_node(&mut self, labels: Option<Labels>) -> Result<(), DigraphError> {
-        let node = Node {
+        self.nodes.push(Node {
             id: self.next_id(),
             labels: labels.unwrap_or(Labels::new()),
-        };
-        self.nodes.push(node);
+        });
         Ok(())
     }
 
     pub fn remove_node(&mut self, id: i32) -> Result<(), DigraphError> {
         if let Some(pos) = self.nodes.iter().position(|e| e.id == id) {
             self.nodes.remove(pos);
+            self.links.retain(|e| (e.source != id) && (e.target != id));
+            Ok(())
         } else {
-            return Err(DigraphError::IdDoesNotExist);
+            Err(DigraphError::IdDoesNotExist)
         }
-
-        self.links.retain(|e| (e.source != id) && (e.target != id));
-
-        Ok(())
     }
 
     pub fn add_link(
@@ -158,5 +158,19 @@ mod test {
         let _ = dg.remove_node(1);
         assert_eq!(dg.links.len(), 0);
         assert_eq!(dg.nodes.len(), 1);
+    }
+
+    #[test]
+    fn test_serialization() {
+        let mut dg = super::Digraph::new();
+        let _ = dg.add_node(None);
+        let _ = dg.add_node(None);
+        let _ = dg.add_link(1, 2, None);
+        assert_eq!(dg.links.len(), 1);
+
+        assert_eq!(
+            dg,
+            serde_json::from_str(&serde_json::to_string(&dg).unwrap()).unwrap()
+        );
     }
 }
