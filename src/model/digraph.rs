@@ -27,7 +27,6 @@ pub struct Link {
 }
 
 impl Digraph {
-
     pub fn new() -> Self {
         Self {
             nodes: Vec::<Node>::new(),
@@ -37,18 +36,12 @@ impl Digraph {
     }
 
     fn node_ids(&self) -> Vec<i32> {
-        let ids : Vec<i32> = self.nodes
-            .iter()
-            .map(|e| e.id )
-            .collect();
+        let ids: Vec<i32> = self.nodes.iter().map(|e| e.id).collect();
         ids
     }
 
     fn link_ids(&self) -> Vec<i32> {
-        let ids : Vec<i32> = self.links
-            .iter()
-            .map(|e| e.id )
-            .collect();
+        let ids: Vec<i32> = self.links.iter().map(|e| e.id).collect();
         ids
     }
 
@@ -79,8 +72,25 @@ impl Digraph {
         Ok(())
     }
 
-    pub fn add_link(&mut self, source: i32, target: i32, labels: Option<Labels>) -> Result<(), DigraphError> {
-        let ids = self.all_ids();
+    pub fn remove_node(&mut self, id: i32) -> Result<(), DigraphError> {
+        if let Some(pos) = self.nodes.iter().position(|e| e.id == id) {
+            self.nodes.remove(pos);
+        } else {
+            return Err(DigraphError::IdDoesNotExist);
+        }
+
+        self.links.retain(|e| (e.source != id) && (e.target != id));
+
+        Ok(())
+    }
+
+    pub fn add_link(
+        &mut self,
+        source: i32,
+        target: i32,
+        labels: Option<Labels>,
+    ) -> Result<(), DigraphError> {
+        let ids = self.node_ids();
         if !ids.contains(&source) {
             Err(DigraphError::IdDoesNotExist)
         } else if !ids.contains(&target) {
@@ -127,4 +137,26 @@ mod test {
         assert_eq!(dg.links.len(), 1);
     }
 
+    #[test]
+    fn test_remove_node() {
+        let mut dg = super::Digraph::new();
+        let _ = dg.add_node(None);
+        assert_eq!(dg.nodes.len(), 1);
+
+        let _ = dg.remove_node(1);
+        assert_eq!(dg.nodes.len(), 0);
+    }
+
+    #[test]
+    fn test_remove_node_with_links() {
+        let mut dg = super::Digraph::new();
+        let _ = dg.add_node(None);
+        let _ = dg.add_node(None);
+        let _ = dg.add_link(1, 2, None);
+        assert_eq!(dg.links.len(), 1);
+
+        let _ = dg.remove_node(1);
+        assert_eq!(dg.links.len(), 0);
+        assert_eq!(dg.nodes.len(), 1);
+    }
 }

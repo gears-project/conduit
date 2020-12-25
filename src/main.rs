@@ -1,4 +1,4 @@
-use clap::{App, load_yaml, crate_version, crate_authors};
+use clap::{crate_authors, crate_version, load_yaml, App};
 
 pub mod model;
 
@@ -14,6 +14,4 @@ fn main() {
     } else {
         println!("No input file given");
     }
-
 }
-
