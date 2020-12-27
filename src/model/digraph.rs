@@ -10,6 +10,7 @@ pub enum DigraphError {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Digraph {
+    pub name: String,
     pub nodes: Vec<Node>,
     pub links: Vec<Link>,
     pub labels: Labels,
@@ -18,12 +19,14 @@ pub struct Digraph {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Node {
     pub id: i32,
+    pub name: String,
     pub labels: Labels,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Link {
     pub id: i32,
+    pub name: String,
     pub source: i32,
     pub target: i32,
     pub labels: Labels,
@@ -32,6 +35,7 @@ pub struct Link {
 impl Digraph {
     pub fn new() -> Self {
         Self {
+            name: "".into(),
             nodes: Vec::<Node>::new(),
             links: Vec::<Link>::new(),
             labels: Labels::new(),
@@ -69,6 +73,7 @@ impl Digraph {
     pub fn add_node(&mut self, labels: Option<Labels>) -> Result<(), DigraphError> {
         self.nodes.push(Node {
             id: self.next_id(),
+            name: "".into(),
             labels: labels.unwrap_or(Labels::new()),
         });
         Ok(())
@@ -98,6 +103,7 @@ impl Digraph {
         } else {
             self.links.push(Link {
                 id: self.next_id(),
+                name: "".into(),
                 source: source,
                 target: target,
                 labels: labels.unwrap_or(Labels::new()),
