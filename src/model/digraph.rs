@@ -15,7 +15,7 @@ pub enum DigraphMessage {
     RemoveLink(i32),
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Digraph {
     pub name: String,
     pub nodes: Vec<Node>,
@@ -23,20 +23,26 @@ pub struct Digraph {
     pub labels: Labels,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Node {
     pub id: i32,
     pub name: String,
     pub labels: Labels,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Link {
     pub id: i32,
     pub name: String,
     pub source: i32,
     pub target: i32,
     pub labels: Labels,
+}
+
+impl Default for Digraph {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Digraph {
