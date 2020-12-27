@@ -111,6 +111,15 @@ impl Digraph {
             Ok(())
         }
     }
+
+    pub fn remove_link(&mut self, id: i32) -> Result<(), DigraphError> {
+        if let Some(pos) = self.links.iter().position(|e| e.id == id) {
+            self.links.remove(pos);
+            Ok(())
+        } else {
+            Err(DigraphError::IdDoesNotExist)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -151,6 +160,31 @@ mod test {
 
         let _ = dg.remove_node(1);
         assert_eq!(dg.nodes.len(), 0);
+    }
+
+    #[test]
+    fn test_remove_node_that_does_not_exist() {
+        let mut dg = super::Digraph::new();
+        let res = dg.remove_node(1);
+        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist));
+    }
+
+    #[test]
+    fn test_remove_link() {
+        let mut dg = super::Digraph::new();
+        let _ = dg.add_node(None);
+        let _ = dg.add_node(None);
+        let _ = dg.add_link(1, 2, None);
+        assert_eq!(dg.links.len(), 1);
+        let res = dg.remove_link(3);
+        assert_eq!(res, Ok(()));
+    }
+
+    #[test]
+    fn test_remove_link_that_does_not_exist() {
+        let mut dg = super::Digraph::new();
+        let res = dg.remove_link(1);
+        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist));
     }
 
     #[test]
