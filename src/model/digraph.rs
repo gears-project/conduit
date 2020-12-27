@@ -4,8 +4,15 @@ type Labels = HashMap<String, String>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum DigraphError {
-    DuplicateId,
     IdDoesNotExist,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum DigraphMessage {
+    AddNode,
+    RemoveNode(i32),
+    AddLink(i32, i32),
+    RemoveLink(i32),
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -120,6 +127,17 @@ impl Digraph {
             Err(DigraphError::IdDoesNotExist)
         }
     }
+
+    pub fn message(&mut self, msg: DigraphMessage) -> Result<(), DigraphError> {
+        match msg {
+            DigraphMessage::AddNode => self.add_node(None),
+            DigraphMessage::RemoveNode(id) => self.remove_node(id),
+            DigraphMessage::AddLink(source_id, target_id) => {
+                self.add_link(source_id, target_id, None)
+            }
+            DigraphMessage::RemoveLink(id) => self.remove_link(id),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -212,5 +230,54 @@ mod test {
             dg,
             serde_json::from_str(&serde_json::to_string(&dg).unwrap()).unwrap()
         );
+    }
+
+    #[test]
+    fn test_message_add_node() {
+        let mut dg = super::Digraph::new();
+        dg.message(super::DigraphMessage::AddNode)
+            .expect("Can send a message");
+        assert_eq!(dg.nodes.len(), 1);
+    }
+
+    #[test]
+    fn test_message_remove_node() {
+        let mut dg = super::Digraph::new();
+        dg.message(super::DigraphMessage::AddNode)
+            .expect("Can add a node via message");
+        assert_eq!(dg.nodes.len(), 1);
+        dg.message(super::DigraphMessage::RemoveNode(1))
+            .expect("Can remove a node via message");
+        assert_eq!(dg.nodes.len(), 0);
+    }
+
+    #[test]
+    fn test_message_add_link() {
+        let mut dg = super::Digraph::new();
+        dg.message(super::DigraphMessage::AddNode)
+            .expect("Can add a node via message");
+        dg.message(super::DigraphMessage::AddNode)
+            .expect("Can add a node via message");
+        assert_eq!(dg.nodes.len(), 2);
+        dg.message(super::DigraphMessage::AddLink(1, 2))
+            .expect("Can add a link via message");
+        assert_eq!(dg.links.len(), 1);
+    }
+
+    #[test]
+    fn test_message_remove_link() {
+        let mut dg = super::Digraph::new();
+        dg.message(super::DigraphMessage::AddNode)
+            .expect("Can add a node via message");
+        dg.message(super::DigraphMessage::AddNode)
+            .expect("Can add a node via message");
+        assert_eq!(dg.nodes.len(), 2);
+        dg.message(super::DigraphMessage::AddLink(1, 2))
+            .expect("Can add a link via message");
+        assert_eq!(dg.links.len(), 1);
+        dg.message(super::DigraphMessage::RemoveLink(3))
+            .expect("Can remove a link via message");
+        assert_eq!(dg.links.len(), 0);
+        assert_eq!(dg.nodes.len(), 2);
     }
 }
