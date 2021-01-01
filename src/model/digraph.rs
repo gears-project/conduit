@@ -1,10 +1,25 @@
+use std::{fmt, error};
 use std::collections::HashMap;
 
 type Labels = HashMap<String, String>;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum DigraphError {
-    IdDoesNotExist,
+    IdDoesNotExist(i32),
+}
+
+impl fmt::Display for DigraphError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DigraphError::IdDoesNotExist(e) => write!(f, "id:{}", e),
+        }
+    }
+}
+
+impl error::Error for DigraphError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -98,7 +113,7 @@ impl Digraph {
             self.links.retain(|e| (e.source != id) && (e.target != id));
             Ok(())
         } else {
-            Err(DigraphError::IdDoesNotExist)
+            Err(DigraphError::IdDoesNotExist(id))
         }
     }
 
@@ -110,9 +125,9 @@ impl Digraph {
     ) -> Result<(), DigraphError> {
         let ids = self.node_ids();
         if !ids.contains(&source) {
-            Err(DigraphError::IdDoesNotExist)
+            Err(DigraphError::IdDoesNotExist(source))
         } else if !ids.contains(&target) {
-            Err(DigraphError::IdDoesNotExist)
+            Err(DigraphError::IdDoesNotExist(target))
         } else {
             self.links.push(Link {
                 id: self.next_id(),
@@ -130,7 +145,7 @@ impl Digraph {
             self.links.remove(pos);
             Ok(())
         } else {
-            Err(DigraphError::IdDoesNotExist)
+            Err(DigraphError::IdDoesNotExist(id))
         }
     }
 
@@ -190,7 +205,7 @@ mod test {
     fn test_remove_node_that_does_not_exist() {
         let mut dg = super::Digraph::new();
         let res = dg.remove_node(1);
-        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist));
+        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist(1)));
     }
 
     #[test]
@@ -208,7 +223,7 @@ mod test {
     fn test_remove_link_that_does_not_exist() {
         let mut dg = super::Digraph::new();
         let res = dg.remove_link(1);
-        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist));
+        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist(1)));
     }
 
     #[test]
