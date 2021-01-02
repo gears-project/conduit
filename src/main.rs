@@ -2,8 +2,9 @@ use clap::{crate_authors, crate_version, load_yaml, App};
 #[macro_use]
 extern crate serde;
 
-pub mod model;
 pub mod doc;
+pub mod model;
+pub mod storage;
 
 fn main() {
     let yaml = load_yaml!("cli.yaml");

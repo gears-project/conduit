@@ -30,7 +30,12 @@ where
     }
 }
 
+pub type RawDocument = Document<String>;
 pub type DigraphDocument = Document<crate::model::digraph::Digraph>;
+
+pub enum Doc {
+    Digraph(DigraphDocument),
+}
 
 #[cfg(test)]
 mod test {
