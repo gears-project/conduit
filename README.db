@@ -1,0 +1,6 @@
+
+## sqlx
+
+```
+❯ sqlx migrate --source src/storage/sqlite-migrations add init-db
+```

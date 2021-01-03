@@ -1,6 +1,5 @@
-
-use std::{fmt, error};
 use crate::model::digraph::Digraph;
+use std::{error, fmt};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ERD(Digraph);
@@ -40,4 +39,3 @@ impl error::Error for DomainError {
         None
     }
 }
-

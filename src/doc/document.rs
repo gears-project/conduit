@@ -47,6 +47,3 @@ mod test {
         assert_eq!(dg.body.nodes.len(), 1);
     }
 }
-
-
-

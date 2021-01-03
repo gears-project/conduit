@@ -1,5 +1,5 @@
-use std::{fmt, error};
 use std::collections::HashMap;
+use std::{error, fmt};
 
 type Labels = HashMap<String, String>;
 
