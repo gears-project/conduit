@@ -53,8 +53,31 @@ impl Engine for Sqlite {
 
         Ok(doc.into())
     }
-    async fn store_document(&self, _doc:RawDocument) -> Result<(), sqlx::Error> {
-        unimplemented!();
+    async fn store_document(&self, doc:RawDocument) -> Result<(), sqlx::Error> {
+        let _result = sqlx::query("
+        INSERT INTO documents (id, name, doctype, version, body)
+        VALUES (?, ?, ?, ?, ?);
+        ")
+            .bind(doc.id)
+            .bind(doc.name)
+            .bind(doc.doctype)
+            .bind(doc.version)
+            .bind(doc.body)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+    async fn update_document(&self, doc:RawDocument) -> Result<(), sqlx::Error> {
+        let _result = sqlx::query("
+        UPDATE documents SET name=? version=? body=? WHERE id=?
+        ")
+            .bind(doc.name)
+            .bind(doc.version)
+            .bind(doc.body)
+            .bind(doc.id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 }
 
