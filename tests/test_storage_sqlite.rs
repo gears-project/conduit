@@ -38,3 +38,28 @@ async fn test_sqlite_on_disk() -> std::io::Result<()> {
 
     Ok(())
 }
+
+#[async_std::test]
+async fn test_sqlite_engine_functions() -> std::io::Result<()> {
+    use conduit::doc::document::DigraphDocument;
+    use conduit::storage::engine::Engine;
+
+    let _ = env_logger::try_init();
+    let storage = Sqlite::setup(":memory:".into())
+        .await
+        .expect("The sqlite storage to be set up");
+
+    let _ = storage
+        .migrate()
+        .await
+        .expect("The sqlite storage to be migrated");
+
+    let doc = DigraphDocument::default();
+
+    let _ = storage
+        .store_document(doc.into())
+        .await
+        .expect("The sqlite storage to be migrated");
+
+    Ok(())
+}

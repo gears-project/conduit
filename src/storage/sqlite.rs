@@ -14,7 +14,6 @@ pub struct Sqlite {
 
 impl Sqlite {
     pub async fn setup(url: String) -> Result<Self, sqlx::Error> {
-
         if url != ":memory:" {
             if !Path::new(&url).exists() {
                 println!("sqlite: file does not exist, creating it");
@@ -104,9 +103,7 @@ impl Engine for Sqlite {
 mod test {
     #[async_std::test]
     async fn test_sqlite() -> std::io::Result<()> {
-        let storage = super::Sqlite::setup(":memory:".into())
-            .await
-            .unwrap();
+        let storage = super::Sqlite::setup(":memory:".into()).await.unwrap();
         let _ = storage.migrate().await.unwrap();
         Ok(())
     }

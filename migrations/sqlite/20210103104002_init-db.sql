@@ -20,14 +20,14 @@ CREATE TABLE documents (
   created_at        TIMESTAMP NOT NULL
                         DEFAULT current_timestamp,
   updated_at        TIMESTAMP NOT NULL
-                        DEFAULT current_timestamp,
+                        DEFAULT current_timestamp
 
-  project_id        TEXT NOT NULL,
-
-  FOREIGN KEY (project_id)
-  REFERENCES projects (id)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION
+---   project_id        TEXT NOT NULL,
+--- 
+---   FOREIGN KEY (project_id)
+---   REFERENCES projects (id)
+---     ON DELETE CASCADE
+---     ON UPDATE NO ACTION
 );
 
 CREATE TABLE translations (

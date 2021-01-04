@@ -9,6 +9,7 @@ pub trait Engine {
     async fn update_document(&self, doc: RawDocument) -> Result<(), EngineError>;
 }
 
+#[derive(Debug, PartialEq)]
 pub enum EngineError {
     Storage(String),
 }

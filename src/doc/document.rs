@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::model::digraph::Digraph;
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Document<T> {
     pub id: Uuid,
@@ -31,7 +33,45 @@ where
 }
 
 pub type RawDocument = Document<String>;
-pub type DigraphDocument = Document<crate::model::digraph::Digraph>;
+
+macro_rules! register_doc {
+    ($source:ty, $name:ident, $doctype:expr) => {
+        // use chrono::NaiveDateTime;
+        // use uuid::Uuid;
+
+        pub type $name = Document<$source>;
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self {
+                    id: Uuid::new_v4(),
+                    // project_id: crate::util::naming::empty_uuid(),
+                    name: "New".to_owned(),
+                    doctype: stringify!($doctype).to_owned(),
+                    version: 0,
+                    // owner: crate::util::naming::empty_uuid(),
+                    // created_at: NaiveDateTime::from_timestamp(0, 0),
+                    // updated_at: NaiveDateTime::from_timestamp(0, 0),
+                    body: <$source>::default(),
+                }
+            }
+        }
+
+        impl From<$name> for RawDocument {
+            fn from(doc: $name) -> RawDocument {
+                RawDocument {
+                    id: doc.id,
+                    doctype: doc.doctype,
+                    name: doc.name,
+                    version: doc.version,
+                    body: serde_json::to_string(&doc.body).unwrap(),
+                }
+            }
+        }
+    };
+}
+
+register_doc!(Digraph, DigraphDocument, digraph);
 
 pub enum Doc {
     Digraph(DigraphDocument),
