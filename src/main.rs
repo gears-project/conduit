@@ -1,6 +1,6 @@
-use std::path::Path;
-use std::fs::File;
 use clap::{crate_authors, crate_version, load_yaml, App};
+use std::fs::File;
+use std::path::Path;
 #[macro_use]
 extern crate serde;
 
@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Ok(db) => {
                     println!("db: running migrations");
                     db.migrate().await?
-                },
+                }
                 Err(err) => {
                     println!("Error {}", err);
                 }
@@ -37,5 +37,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
-
 }

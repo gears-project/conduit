@@ -17,9 +17,7 @@ impl Sqlite {
     }
 
     pub async fn migrate(&self) -> Result<(), sqlx::Error> {
-        sqlx::migrate!("migrations/sqlite")
-            .run(&self.pool)
-            .await?;
+        sqlx::migrate!("migrations/sqlite").run(&self.pool).await?;
         Ok(())
     }
 }
