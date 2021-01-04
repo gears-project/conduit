@@ -4,8 +4,6 @@ version = "0.1.0"
 authors = ["Michiel Kalkman <michiel@nosuchtype.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 clap = { version = "3.0.0-beta.2", features = ["yaml"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -15,3 +13,7 @@ sqlx = { version = "0.4.2", features = [ "runtime-async-std-rustls", "sqlite", "
 async-std = { version = "1.6", features = [ "attributes" ] }
 async-trait = "0.1.42"
 
+[dev-dependencies]
+tempdir =  "0.3"
+log = "0.4"
+env_logger = "0.7.1"

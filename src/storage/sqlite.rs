@@ -1,7 +1,10 @@
 use crate::doc::document::RawDocument;
 use crate::storage::engine::{Engine, EngineError};
+
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
+use std::fs::File;
+use std::path::Path;
 use uuid::Uuid;
 
 pub struct Sqlite {
@@ -11,7 +14,13 @@ pub struct Sqlite {
 
 impl Sqlite {
     pub async fn setup(url: String) -> Result<Self, sqlx::Error> {
-        // let pool = SqlitePool::connect("sqlite::memory:").await?;
+
+        if url != ":memory:" {
+            if !Path::new(&url).exists() {
+                println!("sqlite: file does not exist, creating it");
+                let _ = File::create(&url)?;
+            }
+        }
         let pool = SqlitePool::connect(&url).await?;
         Ok(Self { url, pool })
     }
@@ -87,6 +96,18 @@ impl Engine for Sqlite {
         .bind(doc.id)
         .execute(&self.pool)
         .await?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[async_std::test]
+    async fn test_sqlite() -> std::io::Result<()> {
+        let storage = super::Sqlite::setup(":memory:".into())
+            .await
+            .unwrap();
+        let _ = storage.migrate().await.unwrap();
         Ok(())
     }
 }
