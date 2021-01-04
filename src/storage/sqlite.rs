@@ -1,5 +1,5 @@
 use crate::doc::document::RawDocument;
-use crate::storage::engine::Engine;
+use crate::storage::engine::{Engine, EngineError};
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
 use uuid::Uuid;
@@ -11,8 +11,16 @@ pub struct Sqlite {
 
 impl Sqlite {
     pub async fn setup(url: String) -> Result<Self, sqlx::Error> {
-        let pool = SqlitePool::connect("sqlite::memory:").await?;
+        // let pool = SqlitePool::connect("sqlite::memory:").await?;
+        let pool = SqlitePool::connect(&url).await?;
         Ok(Self { url, pool })
+    }
+
+    pub async fn migrate(&self) -> Result<(), sqlx::Error> {
+        sqlx::migrate!("migrations/sqlite")
+            .run(&self.pool)
+            .await?;
+        Ok(())
     }
 }
 
@@ -37,9 +45,15 @@ impl From<DbDocument> for RawDocument {
     }
 }
 
+impl From<sqlx::Error> for EngineError {
+    fn from(err: sqlx::Error) -> EngineError {
+        EngineError::Storage(err.to_string())
+    }
+}
+
 #[async_trait]
 impl Engine for Sqlite {
-    async fn get_document(&self, id: Uuid) -> Result<RawDocument, sqlx::Error> {
+    async fn get_document(&self, id: Uuid) -> Result<RawDocument, EngineError> {
         let doc = sqlx::query_as::<_, DbDocument>("SELECT * FROM users WHERE id = ?")
             .bind(id)
             .fetch_one(&self.pool)
@@ -47,7 +61,7 @@ impl Engine for Sqlite {
 
         Ok(doc.into())
     }
-    async fn store_document(&self, doc: RawDocument) -> Result<(), sqlx::Error> {
+    async fn store_document(&self, doc: RawDocument) -> Result<(), EngineError> {
         let _result = sqlx::query(
             "
         INSERT INTO documents (id, name, doctype, version, body)
@@ -63,7 +77,7 @@ impl Engine for Sqlite {
         .await?;
         Ok(())
     }
-    async fn update_document(&self, doc: RawDocument) -> Result<(), sqlx::Error> {
+    async fn update_document(&self, doc: RawDocument) -> Result<(), EngineError> {
         let _result = sqlx::query(
             "
         UPDATE documents SET name=? version=? body=? WHERE id=?
