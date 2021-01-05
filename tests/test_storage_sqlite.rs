@@ -41,7 +41,8 @@ async fn test_sqlite_on_disk() -> std::io::Result<()> {
 
 #[async_std::test]
 async fn test_sqlite_engine_functions() -> std::io::Result<()> {
-    use conduit::doc::document::DigraphDocument;
+    use conduit::doc::document::{DigraphDocument, RawDocument};
+    use conduit::doc::project::Project;
     use conduit::storage::engine::Engine;
 
     let _ = env_logger::try_init();
@@ -54,12 +55,33 @@ async fn test_sqlite_engine_functions() -> std::io::Result<()> {
         .await
         .expect("The sqlite storage to be migrated");
 
-    let doc = DigraphDocument::default();
+    let project = Project::new(conduit::util::naming::empty_uuid());
 
     let _ = storage
-        .store_document(doc.into())
+        .store_project(project.clone())
         .await
-        .expect("The sqlite storage to be migrated");
+        .expect("The document to be inserted");
+
+    let mut doc = DigraphDocument::default();
+    doc.project_id = project.id;
+
+    let raw_doc: RawDocument = doc.clone().into();
+
+    let _ = storage
+        .store_document(raw_doc.clone())
+        .await
+        .expect("The document to be inserted");
+
+    let retrieved_raw_doc = storage
+        .get_document(doc.id)
+        .await
+        .expect("The stored document to be retrieved");
+
+    assert_eq!(raw_doc, retrieved_raw_doc);
+
+    let doc_retrieved: DigraphDocument = retrieved_raw_doc.into();
+
+    assert_eq!(doc, doc_retrieved);
 
     Ok(())
 }

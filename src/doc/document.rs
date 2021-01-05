@@ -3,9 +3,11 @@ use uuid::Uuid;
 
 use crate::model::digraph::Digraph;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Document<T> {
     pub id: Uuid,
+    pub project_id: Uuid,
+    pub owner_id: Uuid,
     pub name: String,
     pub doctype: String,
     pub version: i32,
@@ -16,9 +18,11 @@ impl<T> Document<T>
 where
     T: serde::Serialize + serde::de::DeserializeOwned + PartialEq + Default,
 {
-    pub fn new(doctype: String) -> Self {
+    pub fn new(doctype: String, project_id: Uuid, owner_id: Uuid) -> Self {
         Self {
             id: Uuid::new_v4(),
+            project_id: project_id,
+            owner_id: owner_id,
             name: "default".to_owned(),
             doctype,
             version: 0,
@@ -45,11 +49,11 @@ macro_rules! register_doc {
             fn default() -> Self {
                 Self {
                     id: Uuid::new_v4(),
-                    // project_id: crate::util::naming::empty_uuid(),
+                    project_id: crate::util::naming::empty_uuid(),
+                    owner_id: crate::util::naming::empty_uuid(),
                     name: "New".to_owned(),
                     doctype: stringify!($doctype).to_owned(),
                     version: 0,
-                    // owner: crate::util::naming::empty_uuid(),
                     // created_at: NaiveDateTime::from_timestamp(0, 0),
                     // updated_at: NaiveDateTime::from_timestamp(0, 0),
                     body: <$source>::default(),
@@ -61,10 +65,27 @@ macro_rules! register_doc {
             fn from(doc: $name) -> RawDocument {
                 RawDocument {
                     id: doc.id,
+                    project_id: doc.project_id,
+                    owner_id: doc.owner_id,
                     doctype: doc.doctype,
                     name: doc.name,
                     version: doc.version,
-                    body: serde_json::to_string(&doc.body).unwrap(),
+                    body: serde_json::to_string(&doc.body).expect("Document to be serializable"),
+                }
+            }
+        }
+
+        impl From<RawDocument> for $name {
+            fn from(doc: RawDocument) -> $name {
+                $name {
+                    id: doc.id,
+                    project_id: doc.project_id,
+                    owner_id: doc.owner_id,
+                    doctype: doc.doctype,
+                    name: doc.name,
+                    version: doc.version,
+                    body: serde_json::from_str(&doc.body)
+                        .expect("Serialized data to be deserializable"),
                 }
             }
         }
@@ -82,7 +103,11 @@ mod test {
 
     #[test]
     fn test_new_digraph_document() {
-        let mut dg = super::DigraphDocument::new("digraph".into());
+        let mut dg = super::DigraphDocument::new(
+            "digraph".into(),
+            crate::util::naming::empty_uuid(),
+            crate::util::naming::empty_uuid(),
+        );
         let _ = dg.body.add_node(None);
         assert_eq!(dg.body.nodes.len(), 1);
     }

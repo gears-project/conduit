@@ -4,6 +4,8 @@ CREATE TABLE projects (
   name              TEXT NOT NULL,
   body              TEXT NOT NULL,
 
+  owner_id          TEXT NOT NULL,
+
   created_at        TIMESTAMP NOT NULL
                         DEFAULT current_timestamp,
   updated_at        TIMESTAMP NOT NULL
@@ -20,14 +22,15 @@ CREATE TABLE documents (
   created_at        TIMESTAMP NOT NULL
                         DEFAULT current_timestamp,
   updated_at        TIMESTAMP NOT NULL
-                        DEFAULT current_timestamp
+                        DEFAULT current_timestamp,
 
----   project_id        TEXT NOT NULL,
---- 
----   FOREIGN KEY (project_id)
----   REFERENCES projects (id)
----     ON DELETE CASCADE
----     ON UPDATE NO ACTION
+  owner_id          TEXT NOT NULL,
+  project_id        TEXT NOT NULL,
+
+  FOREIGN KEY (project_id)
+  REFERENCES projects (id)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION
 );
 
 CREATE TABLE translations (
@@ -41,11 +44,18 @@ CREATE TABLE translations (
   updated_at        TIMESTAMP NOT NULL
                         DEFAULT current_timestamp,
 
+  owner_id          TEXT NOT NULL,
+  project_id        TEXT NOT NULL,
   document_id       TEXT NOT NULL,
 
   FOREIGN KEY (document_id)
   REFERENCES documents (id)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+
+  FOREIGN KEY (project_id)
+  REFERENCES projects (id)
+    ON DELETE CASCADE
     ON UPDATE NO ACTION
 );
 
@@ -64,7 +74,7 @@ CREATE TABLE changes (
 
   FOREIGN KEY (document_id)
   REFERENCES documents (id)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION
 );
 
