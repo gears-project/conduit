@@ -88,7 +88,7 @@ impl From<sqlx::Error> for EngineError {
 
 #[async_trait]
 impl Engine for Sqlite {
-    async fn get_document(&self, id: Uuid) -> Result<RawDocument, EngineError> {
+    async fn get_document(&self, id: &Uuid) -> Result<RawDocument, EngineError> {
         let doc = sqlx::query_as::<_, DbDocument>("SELECT * FROM documents WHERE id = ?")
             .bind(id)
             .fetch_one(&self.pool)
@@ -131,7 +131,15 @@ impl Engine for Sqlite {
         Ok(())
     }
 
-    async fn get_project(&self, id: Uuid) -> Result<Project, EngineError> {
+    async fn delete_document(&self, id: &Uuid) -> Result<(), EngineError> {
+        sqlx::query("DELETE FROM documents WHERE id=?")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError> {
         let doc = sqlx::query_as::<_, DbProject>("SELECT * FROM projects WHERE id = ?")
             .bind(id)
             .fetch_one(&self.pool)
@@ -170,6 +178,14 @@ impl Engine for Sqlite {
         .bind(doc.id)
         .execute(&self.pool)
         .await?;
+        Ok(())
+    }
+
+    async fn delete_project(&self, id: &Uuid) -> Result<(), EngineError> {
+        sqlx::query("DELETE FROM projects WHERE id=?")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
         Ok(())
     }
 }
