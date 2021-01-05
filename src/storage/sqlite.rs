@@ -194,8 +194,10 @@ impl Engine for Sqlite {
 mod test {
     #[async_std::test]
     async fn test_sqlite() -> std::io::Result<()> {
-        let storage = super::Sqlite::setup(":memory:".into()).await.unwrap();
-        let _ = storage.migrate().await.unwrap();
+        let storage = super::Sqlite::setup(":memory:".into())
+            .await
+            .expect("Database to be initialized in memory");
+        let _ = storage.migrate().await.expect("Database to be migrated");
         Ok(())
     }
 }
