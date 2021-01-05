@@ -79,7 +79,10 @@ impl From<DbProject> for Project {
 
 impl From<sqlx::Error> for EngineError {
     fn from(err: sqlx::Error) -> EngineError {
-        EngineError::Storage(err.to_string())
+        match &err {
+            sqlx::Error::RowNotFound => EngineError::NotFound,
+            _ => EngineError::Storage(err.to_string()),
+        }
     }
 }
 

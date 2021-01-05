@@ -16,5 +16,6 @@ pub trait Engine {
 
 #[derive(Debug, PartialEq)]
 pub enum EngineError {
+    NotFound,
     Storage(String),
 }

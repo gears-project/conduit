@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::project::Project;
 use crate::model::digraph::Digraph;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -18,18 +19,6 @@ impl<T> Document<T>
 where
     T: serde::Serialize + serde::de::DeserializeOwned + PartialEq + Default,
 {
-    pub fn new(doctype: String, project_id: Uuid, owner_id: Uuid) -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            project_id: project_id,
-            owner_id: owner_id,
-            name: "default".to_owned(),
-            doctype,
-            version: 0,
-            body: <T>::default(),
-        }
-    }
-
     pub fn change(&mut self) -> i32 {
         self.version += 1;
         self.version
@@ -44,6 +33,15 @@ macro_rules! register_doc {
         // use uuid::Uuid;
 
         pub type $name = Document<$source>;
+
+        impl $name {
+            pub fn create(project: &Project) -> Self {
+                let mut doc = Self::default();
+                doc.project_id = project.id.clone();
+                doc.owner_id = project.owner_id.clone();
+                doc
+            }
+        }
 
         impl Default for $name {
             fn default() -> Self {
@@ -103,11 +101,7 @@ mod test {
 
     #[test]
     fn test_new_digraph_document() {
-        let mut dg = super::DigraphDocument::new(
-            "digraph".into(),
-            crate::util::naming::empty_uuid(),
-            crate::util::naming::empty_uuid(),
-        );
+        let mut dg = super::DigraphDocument::default();
         let _ = dg.body.add_node(None);
         assert_eq!(dg.body.nodes.len(), 1);
     }

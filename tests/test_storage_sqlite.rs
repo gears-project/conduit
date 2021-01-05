@@ -60,10 +60,9 @@ async fn test_sqlite_engine_functions() -> std::io::Result<()> {
     let _ = storage
         .store_project(project.clone())
         .await
-        .expect("The document to be inserted");
+        .expect("The project to be inserted");
 
-    let mut doc = DigraphDocument::default();
-    doc.project_id = project.id;
+    let doc = DigraphDocument::create(&project);
 
     let raw_doc: RawDocument = doc.clone().into();
 
