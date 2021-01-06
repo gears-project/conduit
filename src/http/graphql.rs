@@ -1,6 +1,28 @@
-use async_graphql::Object;
+use crate::doc::project::Project;
+use crate::storage::engine::EngineContainer;
+use async_graphql::{Context, FieldResult, Object};
+use uuid::Uuid;
 
 pub struct Query;
+
+#[async_graphql::Object]
+impl Project {
+    async fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    async fn version(&self) -> &i32 {
+        &self.version
+    }
+
+    async fn name(&self) -> &str {
+        &self.name
+    }
+
+    async fn body(&self) -> &str {
+        &self.body
+    }
+}
 
 #[Object]
 impl Query {
@@ -9,6 +31,18 @@ impl Query {
         a + b
     }
 
+    async fn borrow_from_context_data<'ctx>(
+        &self,
+        ctx: &'ctx Context<'_>,
+    ) -> async_graphql::Result<&'ctx String> {
+        ctx.data::<String>()
+    }
+
+    async fn project(&self, ctx: &Context<'_>, id: Uuid) -> FieldResult<Project> {
+        let storage = ctx.data::<EngineContainer>().expect("To get a container");
+        let project = storage.get_project(&id).await?;
+        Ok(project)
+    }
 }
 
 #[cfg(test)]

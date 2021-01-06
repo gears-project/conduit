@@ -12,7 +12,7 @@ uuid = { version = "0.8.1", features = ["serde", "v4"] }
 sqlx = { version = "0.4.2", features = [ "runtime-async-std-rustls", "sqlite", "migrate", "uuid" ] }
 async-std = { version = "1.6", features = [ "attributes" ] }
 async-trait = "0.1.42"
-async-graphql = "2.0"
+async-graphql = { version = "2.0", features = ["log", "tracing", "uuid", "chrono"] }
 async-graphql-tide = "2.0"
 
 [dev-dependencies]

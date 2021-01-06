@@ -8,6 +8,7 @@ use std::fs::File;
 use std::path::Path;
 use uuid::Uuid;
 
+#[derive(Debug)]
 pub struct Sqlite {
     pub url: String,
     pub pool: SqlitePool,
@@ -157,7 +158,6 @@ impl Engine for Sqlite {
         )
         .bind(doc.id)
         .bind(doc.owner_id)
-        .bind(doc.id)
         .bind(doc.name)
         .bind(doc.version)
         .bind(doc.body)
