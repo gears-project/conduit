@@ -46,6 +46,34 @@ impl RawDocument {
     }
 }
 
+macro_rules! register_graphql_doc {
+    ($doc:ty, $body:ty) => {
+        #[async_graphql::Object]
+        impl $doc {
+            async fn id(&self) -> &Uuid {
+                &self.id
+            }
+
+            async fn version(&self) -> &i32 {
+                &self.version
+            }
+
+            async fn name(&self) -> &str {
+                &self.name
+            }
+
+            async fn doc(&self) -> &$body {
+                &self.body
+            }
+        }
+    };
+}
+
+use crate::doc::document::DigraphDocument;
+use crate::model::digraph::Digraph;
+
+register_graphql_doc!(DigraphDocument, Digraph);
+
 #[Object]
 impl Query {
     #[cfg(test)]

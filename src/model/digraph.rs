@@ -30,7 +30,7 @@ pub enum DigraphMessage {
     RemoveLink(i32),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(async_graphql::SimpleObject, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Digraph {
     pub name: String,
     pub nodes: Vec<Node>,
@@ -38,14 +38,14 @@ pub struct Digraph {
     pub labels: Labels,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(async_graphql::SimpleObject, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Node {
     pub id: i32,
     pub name: String,
     pub labels: Labels,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(async_graphql::SimpleObject, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Link {
     pub id: i32,
     pub name: String,

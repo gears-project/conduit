@@ -30,7 +30,6 @@ pub type RawDocument = Document<serde_json::Value>;
 macro_rules! register_doc {
     ($source:ty, $name:ident, $doctype:expr) => {
         // use chrono::NaiveDateTime;
-        // use uuid::Uuid;
 
         pub type $name = Document<$source>;
 
@@ -92,8 +91,16 @@ macro_rules! register_doc {
 
 register_doc!(Digraph, DigraphDocument, digraph);
 
+#[derive(async_graphql::Union, Clone, PartialEq)]
 pub enum Doc {
     Digraph(DigraphDocument),
+}
+
+pub fn raw_doc_to_typed(doc: RawDocument) -> Result<Doc, String> {
+    match doc.doctype.as_ref() {
+        "digraph" => Ok(Doc::Digraph(doc.into())),
+        _ => Err("Bad document".to_string()),
+    }
 }
 
 #[cfg(test)]
