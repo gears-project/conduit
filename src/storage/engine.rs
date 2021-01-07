@@ -16,6 +16,11 @@ pub trait Engine: Send + Sync {
     async fn store_project(&self, doc: Project) -> Result<(), EngineError>;
     async fn update_project(&self, doc: Project) -> Result<(), EngineError>;
     async fn delete_project(&self, id: &Uuid) -> Result<(), EngineError>;
+
+    async fn get_project_documents(
+        &self,
+        project_id: &Uuid,
+    ) -> Result<Vec<RawDocument>, EngineError>;
 }
 
 #[derive(Debug, PartialEq)]
@@ -68,6 +73,13 @@ impl EngineContainer {
     }
     pub async fn delete_project(&self, id: &Uuid) -> Result<(), EngineError> {
         self.engine.delete_project(id).await
+    }
+
+    pub async fn get_project_documents(
+        &self,
+        project_id: &Uuid,
+    ) -> Result<Vec<RawDocument>, EngineError> {
+        self.engine.get_project_documents(project_id).await
     }
 }
 

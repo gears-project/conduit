@@ -1,3 +1,4 @@
+use crate::doc::document::RawDocument;
 use crate::doc::project::Project;
 use crate::storage::engine::EngineContainer;
 use async_graphql::{Context, FieldResult, Object};
@@ -7,6 +8,31 @@ pub struct Query;
 
 #[async_graphql::Object]
 impl Project {
+    async fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    async fn version(&self) -> &i32 {
+        &self.version
+    }
+
+    async fn name(&self) -> &str {
+        &self.name
+    }
+
+    async fn body(&self) -> &str {
+        &self.body
+    }
+
+    async fn documents(&self, ctx: &Context<'_>) -> FieldResult<Vec<RawDocument>> {
+        let storage = ctx.data::<EngineContainer>().expect("To get a container");
+        let docs = storage.get_project_documents(&self.id).await?;
+        Ok(docs)
+    }
+}
+
+#[async_graphql::Object]
+impl RawDocument {
     async fn id(&self) -> &Uuid {
         &self.id
     }

@@ -57,6 +57,20 @@ impl From<DbDocument> for RawDocument {
     }
 }
 
+impl From<&DbDocument> for RawDocument {
+    fn from(doc: &DbDocument) -> RawDocument {
+        RawDocument {
+            id: doc.id,
+            project_id: doc.project_id,
+            owner_id: doc.owner_id,
+            name: doc.name.clone(),
+            doctype: doc.doctype.clone(),
+            version: doc.version,
+            body: doc.body.clone(),
+        }
+    }
+}
+
 #[derive(sqlx::FromRow)]
 pub struct DbProject {
     pub id: Uuid,
@@ -187,6 +201,21 @@ impl Engine for Sqlite {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    async fn get_project_documents(
+        &self,
+        project_id: &Uuid,
+    ) -> Result<Vec<RawDocument>, EngineError> {
+        let dbdocs =
+            sqlx::query_as::<_, DbDocument>("SELECT * FROM documents WHERE project_id = ?")
+                .bind(project_id)
+                .fetch_all(&self.pool)
+                .await?;
+
+        let docs: Vec<RawDocument> = dbdocs.iter().map(|e| e.into()).collect();
+
+        Ok(docs)
     }
 }
 
