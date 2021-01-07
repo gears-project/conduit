@@ -37,7 +37,14 @@ async fn test_graphql_schema() -> std::io::Result<()> {
 
     let res = schema
         .execute(format!(
-            "{{ project (id:\"{}\") {{ id, name, version, body }} }}",
+            "{{
+                project (id:\"{}\") {{
+                    id,
+                    name,
+                    version,
+                    body
+                }}
+            }}",
             project_id
         ))
         .await;

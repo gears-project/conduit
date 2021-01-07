@@ -31,13 +31,6 @@ impl Query {
         a + b
     }
 
-    async fn borrow_from_context_data<'ctx>(
-        &self,
-        ctx: &'ctx Context<'_>,
-    ) -> async_graphql::Result<&'ctx String> {
-        ctx.data::<String>()
-    }
-
     async fn project(&self, ctx: &Context<'_>, id: Uuid) -> FieldResult<Project> {
         let storage = ctx.data::<EngineContainer>().expect("To get a container");
         let project = storage.get_project(&id).await?;
