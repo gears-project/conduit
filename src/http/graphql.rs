@@ -44,10 +44,6 @@ impl RawDocument {
     async fn name(&self) -> &str {
         &self.name
     }
-
-    async fn body(&self) -> &str {
-        &self.body
-    }
 }
 
 #[Object]

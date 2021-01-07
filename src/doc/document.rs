@@ -25,7 +25,7 @@ where
     }
 }
 
-pub type RawDocument = Document<String>;
+pub type RawDocument = Document<serde_json::Value>;
 
 macro_rules! register_doc {
     ($source:ty, $name:ident, $doctype:expr) => {
@@ -68,7 +68,7 @@ macro_rules! register_doc {
                     doctype: doc.doctype,
                     name: doc.name,
                     version: doc.version,
-                    body: serde_json::to_string(&doc.body).expect("Document to be serializable"),
+                    body: serde_json::to_value(&doc.body).expect("Document to be serializable"),
                 }
             }
         }
@@ -82,7 +82,7 @@ macro_rules! register_doc {
                     doctype: doc.doctype,
                     name: doc.name,
                     version: doc.version,
-                    body: serde_json::from_str(&doc.body)
+                    body: serde_json::from_value(doc.body)
                         .expect("Serialized data to be deserializable"),
                 }
             }

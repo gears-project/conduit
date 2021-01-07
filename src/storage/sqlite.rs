@@ -41,6 +41,20 @@ pub struct DbDocument {
     pub body: String,
 }
 
+impl From<RawDocument> for DbDocument {
+    fn from(doc: RawDocument) -> DbDocument {
+        DbDocument {
+            id: doc.id,
+            project_id: doc.project_id,
+            owner_id: doc.owner_id,
+            name: doc.name,
+            doctype: doc.doctype,
+            version: doc.version,
+            body: serde_json::to_string(&doc.body).expect("Body to be serializable"),
+        }
+    }
+}
+
 impl From<DbDocument> for RawDocument {
     fn from(doc: DbDocument) -> RawDocument {
         RawDocument {
@@ -50,7 +64,7 @@ impl From<DbDocument> for RawDocument {
             name: doc.name,
             doctype: doc.doctype,
             version: doc.version,
-            body: doc.body,
+            body: serde_json::from_str(&doc.body).expect("Body to be deserializable"),
         }
     }
 }
@@ -64,7 +78,7 @@ impl From<&DbDocument> for RawDocument {
             name: doc.name.clone(),
             doctype: doc.doctype.clone(),
             version: doc.version,
-            body: doc.body.clone(),
+            body: serde_json::from_str(&doc.body).expect("Body to be deserializable"),
         }
     }
 }
@@ -111,6 +125,7 @@ impl Engine for Sqlite {
     }
 
     async fn store_document(&self, doc: RawDocument) -> Result<(), EngineError> {
+        let doc: DbDocument = doc.into();
         let _result = sqlx::query(
             "
         INSERT INTO documents (id, project_id, owner_id, name, doctype, version, body)
@@ -130,6 +145,7 @@ impl Engine for Sqlite {
     }
 
     async fn update_document(&self, doc: RawDocument) -> Result<(), EngineError> {
+        let doc: DbDocument = doc.into();
         let _result = sqlx::query(
             "
         UPDATE documents SET name=? version=? body=? WHERE id=?
