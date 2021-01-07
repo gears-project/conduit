@@ -14,7 +14,7 @@ impl Project {
     pub fn new(owner_id: Uuid) -> Self {
         Self {
             id: Uuid::new_v4(),
-            owner_id: owner_id,
+            owner_id,
             name: "New Project".to_string(),
             version: 0,
             body: "".into(),

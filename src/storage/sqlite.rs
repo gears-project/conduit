@@ -16,11 +16,9 @@ pub struct Sqlite {
 
 impl Sqlite {
     pub async fn setup(url: String) -> Result<Self, sqlx::Error> {
-        if url != ":memory:" {
-            if !Path::new(&url).exists() {
-                println!("sqlite: file does not exist, creating it");
-                let _ = File::create(&url)?;
-            }
+        if url != ":memory:" && !Path::new(&url).exists() {
+            println!("sqlite: file does not exist, creating it");
+            let _ = File::create(&url)?;
         }
         let pool = SqlitePool::connect(&url).await?;
         Ok(Self { url, pool })

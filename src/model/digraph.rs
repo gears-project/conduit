@@ -102,7 +102,7 @@ impl Digraph {
         self.nodes.push(Node {
             id: self.next_id(),
             name: "".into(),
-            labels: labels.unwrap_or(Labels::new()),
+            labels: labels.unwrap_or_default(),
         });
         Ok(())
     }
@@ -132,9 +132,9 @@ impl Digraph {
             self.links.push(Link {
                 id: self.next_id(),
                 name: "".into(),
-                source: source,
-                target: target,
-                labels: labels.unwrap_or(Labels::new()),
+                source,
+                target,
+                labels: labels.unwrap_or_default(),
             });
             Ok(())
         }
