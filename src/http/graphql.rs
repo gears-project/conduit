@@ -1,10 +1,36 @@
-use crate::doc::document::RawDocument;
+use crate::doc::document::{DocType, RawDocument};
 use crate::doc::project::Project;
 use crate::storage::engine::EngineContainer;
 use async_graphql::{Context, FieldResult, Object};
 use uuid::Uuid;
 
-pub struct Query;
+macro_rules! register_graphql_doc {
+    ($doc:ty, $body:ty) => {
+        #[async_graphql::Object]
+        impl $doc {
+            async fn id(&self) -> &Uuid {
+                &self.id
+            }
+
+            async fn version(&self) -> &i32 {
+                &self.version
+            }
+
+            async fn name(&self) -> &str {
+                &self.name
+            }
+
+            async fn body(&self) -> &$body {
+                &self.body
+            }
+        }
+    };
+}
+
+use crate::doc::document::DigraphDocument;
+use crate::model::digraph::Digraph;
+
+register_graphql_doc!(DigraphDocument, Digraph);
 
 #[async_graphql::Object]
 impl Project {
@@ -24,11 +50,30 @@ impl Project {
         &self.body
     }
 
-    async fn documents(&self, ctx: &Context<'_>) -> FieldResult<Vec<RawDocument>> {
+    async fn digraphs(
+        &self,
+        ctx: &Context<'_>,
+    ) -> FieldResult<Vec<crate::doc::document::DigraphDocument>> {
+        let storage = ctx.data::<EngineContainer>().expect("To get a container");
+        let docs = storage
+            .get_project_documents(&self.id, DocType::Digraph)
+            .await?;
+        Ok(docs.iter().map(|doc| doc.into()).collect())
+    }
+
+    /*
+    async fn documents(&self, ctx: &Context<'_>) -> FieldResult<Vec<crate::doc::document::Doc>> {
         let storage = ctx.data::<EngineContainer>().expect("To get a container");
         let docs = storage.get_project_documents(&self.id).await?;
-        Ok(docs)
+        Ok(docs
+            .iter()
+            .map(|doc| {
+                crate::doc::document::raw_doc_to_typed(doc).unwrap()
+            })
+            .collect()
+        )
     }
+    */
 }
 
 #[async_graphql::Object]
@@ -46,33 +91,7 @@ impl RawDocument {
     }
 }
 
-macro_rules! register_graphql_doc {
-    ($doc:ty, $body:ty) => {
-        #[async_graphql::Object]
-        impl $doc {
-            async fn id(&self) -> &Uuid {
-                &self.id
-            }
-
-            async fn version(&self) -> &i32 {
-                &self.version
-            }
-
-            async fn name(&self) -> &str {
-                &self.name
-            }
-
-            async fn doc(&self) -> &$body {
-                &self.body
-            }
-        }
-    };
-}
-
-use crate::doc::document::DigraphDocument;
-use crate::model::digraph::Digraph;
-
-register_graphql_doc!(DigraphDocument, Digraph);
+pub struct Query;
 
 #[Object]
 impl Query {

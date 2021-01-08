@@ -86,22 +86,46 @@ macro_rules! register_doc {
                 }
             }
         }
+
+        impl From<&RawDocument> for $name {
+            fn from(doc: &RawDocument) -> $name {
+                $name {
+                    id: doc.id,
+                    project_id: doc.project_id,
+                    owner_id: doc.owner_id,
+                    doctype: doc.doctype.clone(),
+                    name: doc.name.clone(),
+                    version: doc.version,
+                    body: serde_json::from_value(doc.body.clone())
+                        .expect("Serialized data to be deserializable"),
+                }
+            }
+        }
     };
+}
+
+pub enum DocType {
+    Digraph,
+}
+
+impl DocType {
+    pub fn to_string(&self) -> String {
+        match self {
+            Self::Digraph => "digraph".to_string(),
+        }
+    }
 }
 
 register_doc!(Digraph, DigraphDocument, digraph);
 
-#[derive(async_graphql::Union, Clone, PartialEq)]
-pub enum Doc {
-    Digraph(DigraphDocument),
-}
-
-pub fn raw_doc_to_typed(doc: RawDocument) -> Result<Doc, String> {
+/*
+pub fn raw_doc_to_typed(doc: &RawDocument) -> Result<Doc, String> {
     match doc.doctype.as_ref() {
         "digraph" => Ok(Doc::Digraph(doc.into())),
         _ => Err("Bad document".to_string()),
     }
 }
+*/
 
 #[cfg(test)]
 mod test {

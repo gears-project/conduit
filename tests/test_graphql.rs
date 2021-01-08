@@ -115,10 +115,18 @@ async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
                     name,
                     version,
                     body,
-                    documents {{
+                    digraphs {{
                         id,
                         name,
                         version
+                        body {{
+                            nodes {{
+                                id
+                            }}
+                            links {{
+                                id
+                            }}
+                        }}
                     }}
                 }}
             }}",
@@ -134,16 +142,24 @@ async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
                     "name": "New Project",
                     "version": 0,
                     "body": "",
-                    "documents" : [
+                    "digraphs" : [
                         {
                             "id": doc1_id,
                             "name": "New",
-                            "version": 0
+                            "version": 0,
+                            "body": {
+                                "nodes": [],
+                                "links": []
+                            }
                         },
                         {
                             "id": doc2_id,
                             "name": "New",
-                            "version": 0
+                            "version": 0,
+                            "body": {
+                                "nodes": [],
+                                "links": []
+                            }
                         }
                     ]
                 }

@@ -1,4 +1,4 @@
-use crate::doc::document::RawDocument;
+use crate::doc::document::{DocType, RawDocument};
 use crate::doc::project::Project;
 use crate::storage::engine::{Engine, EngineError};
 
@@ -220,12 +220,15 @@ impl Engine for Sqlite {
     async fn get_project_documents(
         &self,
         project_id: &Uuid,
+        variant: DocType,
     ) -> Result<Vec<RawDocument>, EngineError> {
-        let dbdocs =
-            sqlx::query_as::<_, DbDocument>("SELECT * FROM documents WHERE project_id = ?")
-                .bind(project_id)
-                .fetch_all(&self.pool)
-                .await?;
+        let dbdocs = sqlx::query_as::<_, DbDocument>(
+            "SELECT * FROM documents WHERE doctype = ? AND project_id = ?",
+        )
+        .bind(variant.to_string())
+        .bind(project_id)
+        .fetch_all(&self.pool)
+        .await?;
 
         let docs: Vec<RawDocument> = dbdocs.iter().map(|e| e.into()).collect();
 

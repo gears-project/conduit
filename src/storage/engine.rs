@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::doc::document::RawDocument;
+use crate::doc::document::{DocType, RawDocument};
 use crate::doc::project::Project;
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -20,6 +20,7 @@ pub trait Engine: Send + Sync {
     async fn get_project_documents(
         &self,
         project_id: &Uuid,
+        variant: DocType,
     ) -> Result<Vec<RawDocument>, EngineError>;
 }
 
@@ -78,8 +79,9 @@ impl EngineContainer {
     pub async fn get_project_documents(
         &self,
         project_id: &Uuid,
+        variant: DocType,
     ) -> Result<Vec<RawDocument>, EngineError> {
-        self.engine.get_project_documents(project_id).await
+        self.engine.get_project_documents(project_id, variant).await
     }
 }
 
