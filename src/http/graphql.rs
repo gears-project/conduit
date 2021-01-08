@@ -60,20 +60,6 @@ impl Project {
             .await?;
         Ok(docs.iter().map(|doc| doc.into()).collect())
     }
-
-    /*
-    async fn documents(&self, ctx: &Context<'_>) -> FieldResult<Vec<crate::doc::document::Doc>> {
-        let storage = ctx.data::<EngineContainer>().expect("To get a container");
-        let docs = storage.get_project_documents(&self.id).await?;
-        Ok(docs
-            .iter()
-            .map(|doc| {
-                crate::doc::document::raw_doc_to_typed(doc).unwrap()
-            })
-            .collect()
-        )
-    }
-    */
 }
 
 #[async_graphql::Object]
@@ -104,6 +90,12 @@ impl Query {
         let storage = ctx.data::<EngineContainer>().expect("To get a container");
         let project = storage.get_project(&id).await?;
         Ok(project)
+    }
+
+    async fn projects(&self, ctx: &Context<'_>) -> FieldResult<Vec<Project>> {
+        let storage = ctx.data::<EngineContainer>().expect("To get a container");
+        let projects = storage.get_projects().await?;
+        Ok(projects)
     }
 }
 

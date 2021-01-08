@@ -104,6 +104,18 @@ impl From<DbProject> for Project {
     }
 }
 
+impl From<&DbProject> for Project {
+    fn from(doc: &DbProject) -> Project {
+        Project {
+            id: doc.id,
+            owner_id: doc.owner_id,
+            name: doc.name.clone(),
+            version: doc.version,
+            body: doc.body.clone(),
+        }
+    }
+}
+
 impl From<sqlx::Error> for EngineError {
     fn from(err: sqlx::Error) -> EngineError {
         match &err {
@@ -166,6 +178,16 @@ impl Engine for Sqlite {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    async fn get_projects(&self) -> Result<Vec<Project>, EngineError> {
+        let dbdocs = sqlx::query_as::<_, DbProject>("SELECT * FROM projects")
+            .fetch_all(&self.pool)
+            .await?;
+
+        let docs: Vec<Project> = dbdocs.iter().map(|e| e.into()).collect();
+
+        Ok(docs)
     }
 
     async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError> {

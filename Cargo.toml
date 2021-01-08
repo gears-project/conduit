@@ -14,9 +14,11 @@ async-std = { version = "1.6", features = [ "attributes" ] }
 async-trait = "0.1.42"
 async-graphql = { version = "2.0", features = ["log", "tracing", "uuid", "chrono"] }
 async-graphql-tide = "2.0"
+tide = "0.15"
 
 [dev-dependencies]
 tempdir =  "0.3"
 log = "0.4"
 env_logger = "0.7.1"
 assert-json-diff = "1.1.0"
+surf = "2.0.0-alpha.5"
