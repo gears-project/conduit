@@ -1,19 +1,22 @@
+use async_graphql::extensions::{ApolloTracing, Logger};
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptySubscription, Schema};
 use async_std::task;
 
 use std::env;
 use tide::{http::mime, Body, Response, StatusCode};
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-use super::graphql::Query;
+use super::graphql::{MutationRoot, Query};
 use crate::storage::engine::{Engine, EngineContainer};
 use crate::storage::sqlite::Sqlite;
 
+/*
 #[derive(Clone)]
 struct AppState {
     schema: Schema<Query, EmptyMutation, EmptySubscription>,
 }
+*/
 
 pub fn serve() -> Result<()> {
     task::block_on(run())
@@ -39,7 +42,9 @@ async fn run() -> Result<()> {
 
     let engine = EngineContainer::new(storage);
 
-    let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
+    let schema = Schema::build(Query, MutationRoot, EmptySubscription)
+        .extension(Logger)
+        .extension(ApolloTracing)
         .data(engine)
         .finish();
 

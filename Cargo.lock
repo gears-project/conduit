@@ -757,6 +757,7 @@ dependencies = [
  "async-trait",
  "clap",
  "env_logger",
+ "futures",
  "log",
  "serde",
  "serde_json",

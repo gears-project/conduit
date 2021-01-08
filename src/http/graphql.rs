@@ -99,6 +99,24 @@ impl Query {
     }
 }
 
+pub struct MutationRoot;
+
+#[Object]
+impl MutationRoot {
+    async fn digraph_create(
+        &self,
+        ctx: &Context<'_>,
+        project_id: Uuid,
+    ) -> FieldResult<DigraphDocument> {
+        let storage = ctx.data::<EngineContainer>().expect("To get a container");
+
+        let project = storage.get_project(&project_id).await?;
+        let doc = DigraphDocument::create(&project);
+        let _ = storage.store_document(doc.clone().into()).await?;
+        Ok(doc)
+    }
+}
+
 #[cfg(test)]
 mod test {
 
