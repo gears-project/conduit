@@ -115,6 +115,25 @@ impl MutationRoot {
         let _ = storage.store_document(doc.clone().into()).await?;
         Ok(doc)
     }
+
+    async fn digraph_add_node(
+        &self,
+        ctx: &Context<'_>,
+        project_id: Uuid,
+        doc_id: Uuid,
+    ) -> FieldResult<DigraphDocument> {
+        use crate::model::digraph::DigraphMessage;
+
+        let storage = ctx.data::<EngineContainer>().expect("To get a container");
+
+        let _project = storage.get_project(&project_id).await?;
+        let mut doc: DigraphDocument = storage.get_document(&doc_id).await?.into();
+        let _ = doc.body.message(DigraphMessage::AddNode);
+        let _ = doc.change();
+        let _ = storage.update_document(doc.clone().into()).await?;
+
+        Ok(doc)
+    }
 }
 
 #[cfg(test)]

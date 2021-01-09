@@ -160,7 +160,7 @@ impl Engine for Sqlite {
         let doc: DbDocument = doc.into();
         let _result = sqlx::query(
             "
-        UPDATE documents SET name=? version=? body=? WHERE id=?
+        UPDATE documents SET name=?, version=?, body=? WHERE id=?
         ",
         )
         .bind(doc.name)

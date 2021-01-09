@@ -3,11 +3,11 @@ extern crate conduit;
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use conduit::doc::document::DigraphDocument;
 use conduit::doc::project::Project;
-use conduit::http::graphql::Query;
+use conduit::http::graphql::{MutationRoot, Query};
 use conduit::storage::engine::{Engine, EngineContainer};
 use conduit::storage::sqlite::Sqlite;
 
-use assert_json_diff::assert_json_eq;
+use assert_json_diff::{assert_json_eq, assert_json_include};
 use serde_json::json;
 
 #[async_std::test]
@@ -65,6 +65,7 @@ async fn test_graphql_schema() -> std::io::Result<()> {
 
     Ok(())
 }
+
 #[async_std::test]
 async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
     let _ = env_logger::try_init();
@@ -162,6 +163,97 @@ async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
                             }
                         }
                     ]
+                }
+            }
+        })
+    );
+
+    Ok(())
+}
+
+#[async_std::test]
+async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
+    let _ = env_logger::try_init();
+
+    let storage = Sqlite::setup(":memory:".into())
+        .await
+        .expect("The sqlite storage to be set up");
+    let _ = storage
+        .migrate()
+        .await
+        .expect("The sqlite storage to be migrated");
+
+    let project = Project::new(conduit::util::naming::empty_uuid());
+    let project_id = project.id.to_hyphenated().to_string();
+
+    let _ = storage
+        .store_project(project.clone())
+        .await
+        .expect("The project to be inserted");
+
+    let engine = EngineContainer::new(storage);
+
+    let schema = Schema::build(Query, MutationRoot, EmptySubscription)
+        .data(engine)
+        .finish();
+
+    let create_digraph_res = schema
+        .execute(format!(
+            "
+            mutation create {{
+              digraphCreate(projectId: \"{}\") {{
+                id
+                name
+              }}
+            }}",
+            project_id
+        ))
+        .await;
+
+    let create_digraph_res_json = serde_json::to_value(create_digraph_res)
+        .expect("GraphQL response to be deserializable to Value");
+    assert_json_include!(
+        actual: create_digraph_res_json.clone(),
+        expected: json!({
+            "data": {
+                "digraphCreate": {
+                    "name": "New"
+                }
+            }
+        })
+    );
+
+    let doc_id = serde_json::to_string(
+        create_digraph_res_json
+            .pointer("/data/digraphCreate/id")
+            .expect("Node ID to exist in graphql response"),
+    )
+    .expect("Node ID value to be deserializable");
+
+    let create_node_res = schema
+        .execute(format!(
+            "
+            mutation add {{
+              digraphAddNode(
+                projectId: \"{}\",
+                docId: {}
+              ) {{
+                id
+                name
+              }}
+            }}",
+            project_id, doc_id
+        ))
+        .await;
+
+    let create_node_res_json = serde_json::to_value(create_node_res)
+        .expect("GraphQL response to be deserializable to Value");
+    assert_json_include!(
+        actual: create_node_res_json.clone(),
+        expected: json!({
+            "data": {
+                "digraphAddNode": {
+                    "name": "New"
                 }
             }
         })
