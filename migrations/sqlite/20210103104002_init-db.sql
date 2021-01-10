@@ -61,7 +61,7 @@ CREATE TABLE translations (
 
 CREATE TABLE changes (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
-  document_version  TEXT NOT NULL,
+  start_version     TEXT NOT NULL,
   forward           TEXT NOT NULL,
   reverse           TEXT NOT NULL,
 

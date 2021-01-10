@@ -129,8 +129,7 @@ impl MutationRoot {
         let _project = storage.get_project(&project_id).await?;
         let mut doc: DigraphDocument = storage.get_document(&doc_id).await?.into();
         let _ = doc.body.message(DigraphMessage::AddNode);
-        let _ = doc.change();
-        let _ = storage.update_document(doc.clone().into()).await?;
+        let _ = storage.update_document(&mut doc.clone().into()).await?;
 
         Ok(doc)
     }
