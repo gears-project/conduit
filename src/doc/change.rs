@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use serde_json::Value;
+use uuid::Uuid;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Change {
@@ -10,4 +10,3 @@ pub struct Change {
     pub forward: Value,
     pub reverse: Value,
 }
-

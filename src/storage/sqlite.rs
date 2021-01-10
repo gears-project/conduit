@@ -1,6 +1,6 @@
+use crate::doc::change::Change;
 use crate::doc::document::{DocType, RawDocument};
 use crate::doc::project::Project;
-use crate::doc::change::Change;
 use crate::storage::engine::{Engine, EngineError};
 
 use async_trait::async_trait;
@@ -126,8 +126,8 @@ pub struct DbChange {
     pub document_id: Uuid,
 }
 
-impl From<&Change> for DbChange {
-    fn from(change: &Change) -> DbChange {
+impl From<Change> for DbChange {
+    fn from(change: Change) -> DbChange {
         DbChange {
             id: change.id,
             version: change.version,
@@ -137,7 +137,6 @@ impl From<&Change> for DbChange {
         }
     }
 }
-
 
 impl From<sqlx::Error> for EngineError {
     fn from(err: sqlx::Error) -> EngineError {
@@ -179,8 +178,15 @@ impl Engine for Sqlite {
         Ok(())
     }
 
-    async fn update_document(&self, doc: RawDocument) -> Result<(), EngineError> {
+    async fn update_document(
+        &self,
+        doc: RawDocument,
+        change: Option<Change>,
+    ) -> Result<(), EngineError> {
+        let mut tx = self.pool.begin().await?;
+
         let doc: DbDocument = doc.into();
+
         let _result = sqlx::query(
             "
         UPDATE documents SET name=?, version=?, body=? WHERE id=?
@@ -190,8 +196,24 @@ impl Engine for Sqlite {
         .bind(doc.version)
         .bind(doc.body)
         .bind(doc.id)
-        .execute(&self.pool)
+        .execute(&mut tx)
         .await?;
+
+        if let Some(change) = change {
+            let dbchange: DbChange = change.into();
+            let _result = sqlx::query(
+                "
+            INSERT INTO changes (document_id, version, forward, reverse)
+            VALUES (?, ?, ?, ?);
+            ",
+            )
+            .bind(dbchange.document_id)
+            .bind(dbchange.version)
+            .bind(dbchange.forward)
+            .bind(dbchange.reverse)
+            .execute(&mut tx)
+            .await?;
+        }
         Ok(())
     }
 
@@ -278,23 +300,6 @@ impl Engine for Sqlite {
         let docs: Vec<RawDocument> = dbdocs.iter().map(|e| e.into()).collect();
 
         Ok(docs)
-    }
-
-    async fn add_change(&self, change: &Change) -> Result<(), EngineError> {
-        let dbchange : DbChange = change.into();
-        let _result = sqlx::query(
-            "
-        INSERT INTO changes (document_id, version, forward, reverse)
-        VALUES (?, ?, ?, ?, ?);
-        ",
-        )
-        .bind(dbchange.document_id)
-        .bind(dbchange.version)
-        .bind(dbchange.forward)
-        .bind(dbchange.reverse)
-        .execute(&self.pool)
-        .await?;
-        Ok(())
     }
 }
 

@@ -1,17 +1,21 @@
 use std::fmt;
 
+use crate::doc::change::Change;
 use crate::doc::document::{DocType, RawDocument};
 use crate::doc::project::Project;
-use crate::doc::change::Change;
 use async_trait::async_trait;
-use uuid::Uuid;
 use json_patch::diff;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait Engine: Send + Sync {
     async fn get_document(&self, id: &Uuid) -> Result<RawDocument, EngineError>;
     async fn store_document(&self, doc: RawDocument) -> Result<(), EngineError>;
-    async fn update_document(&self, doc: RawDocument) -> Result<(), EngineError>;
+    async fn update_document(
+        &self,
+        doc: RawDocument,
+        change: Option<Change>,
+    ) -> Result<(), EngineError>;
     async fn delete_document(&self, id: &Uuid) -> Result<(), EngineError>;
 
     async fn get_projects(&self) -> Result<Vec<Project>, EngineError>;
@@ -19,8 +23,6 @@ pub trait Engine: Send + Sync {
     async fn store_project(&self, doc: Project) -> Result<(), EngineError>;
     async fn update_project(&self, doc: Project) -> Result<(), EngineError>;
     async fn delete_project(&self, id: &Uuid) -> Result<(), EngineError>;
-
-    async fn add_change(&self, change: &Change) -> Result<(), EngineError>;
 
     async fn get_project_documents(
         &self,
@@ -41,7 +43,9 @@ impl fmt::Display for EngineError {
         match self {
             EngineError::NotFound => write!(f, "Not Found"),
             EngineError::Storage(s) => write!(f, "Error : {}", s),
-            EngineError::VersionMismatch(a, b) => write!(f, "Document version mismatch : {}, {}", a, b),
+            EngineError::VersionMismatch(a, b) => {
+                write!(f, "Document version mismatch : {}, {}", a, b)
+            }
         }
     }
 }
@@ -66,19 +70,22 @@ impl EngineContainer {
     pub async fn update_document(&self, doc: &mut RawDocument) -> Result<(), EngineError> {
         let current_doc = self.get_document(&doc.id).await?;
         if current_doc.version != doc.version {
-            Err(EngineError::VersionMismatch(doc.version, current_doc.version))
+            Err(EngineError::VersionMismatch(
+                doc.version,
+                current_doc.version,
+            ))
         } else {
             doc.change();
             let forward = diff(&current_doc.body, &doc.body);
             let reverse = diff(&doc.body, &current_doc.body);
-            let _ = self.engine.add_change(&Change {
+            let change = Change {
                 id: 0,
                 document_id: doc.id,
                 version: doc.version,
                 forward: serde_json::to_value(forward).expect("Patch to convert to Value"),
                 reverse: serde_json::to_value(reverse).expect("Patch to convert to Value"),
-            });
-            self.engine.update_document(doc.clone()).await
+            };
+            self.engine.update_document(doc.clone(), Some(change)).await
         }
     }
     pub async fn delete_document(&self, id: &Uuid) -> Result<(), EngineError> {
