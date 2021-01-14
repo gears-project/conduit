@@ -1,6 +1,6 @@
 use crate::doc::document::{DocType, RawDocument};
 use crate::doc::project::Project;
-use crate::storage::engine::EngineContainer;
+use crate::storage::engine::{EngineContainer, EngineError};
 use async_graphql::{Context, FieldResult, Object};
 use uuid::Uuid;
 
@@ -28,7 +28,7 @@ macro_rules! register_graphql_doc {
 }
 
 use crate::doc::document::DigraphDocument;
-use crate::model::digraph::Digraph;
+use crate::model::digraph::{Digraph, DigraphMessage};
 
 register_graphql_doc!(DigraphDocument, Digraph);
 
@@ -101,6 +101,20 @@ impl Query {
 
 pub struct MutationRoot;
 
+async fn digraph_change(
+        ctx: &Context<'_>,
+        project_id: Uuid,
+        doc_id: Uuid,
+        msg: DigraphMessage,
+    ) -> Result<DigraphDocument, EngineError> {
+    let storage = ctx.data::<EngineContainer>().expect("To get a container");
+    let _project = storage.get_project(&project_id).await?;
+    let mut doc: DigraphDocument = storage.get_document(&doc_id).await?.into();
+    let _ = doc.body.message(msg);
+    let _ = storage.update_document(&mut doc.clone().into()).await?;
+    Ok(doc)
+}
+
 #[Object]
 impl MutationRoot {
     async fn digraph_create(
@@ -122,13 +136,46 @@ impl MutationRoot {
         project_id: Uuid,
         doc_id: Uuid,
     ) -> FieldResult<DigraphDocument> {
-        use crate::model::digraph::DigraphMessage;
+
+        use crate::model::digraph::{DigraphMessage, NodeAttributes};
+        let msg = DigraphMessage::AddNode(NodeAttributes::default());
+
+        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
+
+        Ok(doc)
+    }
+
+    async fn digraph_update_node(
+        &self,
+        ctx: &Context<'_>,
+        project_id: Uuid,
+        doc_id: Uuid,
+        node_id: i32,
+    ) -> FieldResult<DigraphDocument> {
+
+        use crate::model::digraph::{DigraphMessage, NodeAttributes};
+        let msg = DigraphMessage::UpdateNode(node_id, NodeAttributes::default());
+
+        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
+
+        Ok(doc)
+    }
+
+    async fn digraph_remove_node(
+        &self,
+        ctx: &Context<'_>,
+        project_id: Uuid,
+        doc_id: Uuid,
+        node_id: i32,
+    ) -> FieldResult<DigraphDocument> {
+
+        use crate::model::digraph::{DigraphMessage};
 
         let storage = ctx.data::<EngineContainer>().expect("To get a container");
 
         let _project = storage.get_project(&project_id).await?;
         let mut doc: DigraphDocument = storage.get_document(&doc_id).await?.into();
-        let _ = doc.body.message(DigraphMessage::AddNode);
+        let _ = doc.body.message(DigraphMessage::RemoveNode(node_id));
         let _ = storage.update_document(&mut doc.clone().into()).await?;
 
         Ok(doc)
@@ -142,9 +189,11 @@ mod test {
     use async_graphql::*;
     use serde_json::json;
 
+    use super::*;
+
     #[async_std::test]
     async fn test_schema() -> std::io::Result<()> {
-        let schema = Schema::new(super::Query, EmptyMutation, EmptySubscription);
+        let schema = Schema::new(Query, EmptyMutation, EmptySubscription);
         let res = schema.execute("{ add(a: 10, b: 20) }").await;
         assert_json_eq!(
             res,

@@ -24,7 +24,8 @@ impl error::Error for DigraphError {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum DigraphMessage {
-    AddNode,
+    AddNode(NodeAttributes),
+    UpdateNode(i32, NodeAttributes),
     RemoveNode(i32),
     AddLink(i32, i32),
     RemoveLink(i32),
@@ -38,11 +39,41 @@ pub struct Digraph {
     pub labels: Labels,
 }
 
-#[derive(async_graphql::SimpleObject, Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(async_graphql::SimpleObject)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Node {
     pub id: i32,
     pub name: String,
     pub labels: Labels,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct NodeAttributes {
+    pub name: Option<String>,
+    pub labels: Option<Labels>,
+}
+
+impl Node {
+    pub fn update(&mut self, attrs: NodeAttributes) -> () {
+        if let Some(name) = attrs.name {
+            self.name = name;
+        }
+
+        if let Some(labels) = attrs.labels {
+            for (key, value) in &labels {
+                let _ = self.labels.insert(key.to_string(), value.to_string());
+            }
+        }
+    }
+}
+
+impl Default for NodeAttributes {
+    fn default() -> Self {
+        Self {
+            name: Some("".to_string()),
+            labels: Some(Labels::new()),
+        }
+    }
 }
 
 #[derive(async_graphql::SimpleObject, Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -52,6 +83,36 @@ pub struct Link {
     pub source: i32,
     pub target: i32,
     pub labels: Labels,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct LinkAttributes {
+    pub name: Option<String>,
+    pub source: Option<i32>,
+    pub target: Option<i32>,
+    pub labels: Option<Labels>,
+}
+
+impl Link {
+    pub fn update(&mut self, attrs: LinkAttributes) -> () {
+        if let Some(name) = attrs.name {
+            self.name = name;
+        }
+
+        if let Some(source) = attrs.source {
+            self.source = source;
+        }
+
+        if let Some(target) = attrs.target {
+            self.target = target;
+        }
+
+        if let Some(labels) = attrs.labels {
+            for (key, value) in &labels {
+                let _ = self.labels.insert(key.to_string(), value.to_string());
+            }
+        }
+    }
 }
 
 impl Default for Digraph {
@@ -98,13 +159,25 @@ impl Digraph {
         self.highest_id() + 1
     }
 
-    pub fn add_node(&mut self, labels: Option<Labels>) -> Result<(), DigraphError> {
+    pub fn add_node(&mut self, attrs: Option<NodeAttributes>) -> Result<(), DigraphError> {
+        let attrs = attrs.unwrap_or_default();
+
         self.nodes.push(Node {
             id: self.next_id(),
-            name: "".into(),
-            labels: labels.unwrap_or_default(),
+            name: attrs.name.unwrap_or("".into()),
+            labels: attrs.labels.unwrap_or(Labels::new()),
         });
         Ok(())
+    }
+
+    pub fn update_node(&mut self, id: i32, attrs: NodeAttributes) -> Result<(), DigraphError> {
+        if let Some(pos) = self.nodes.iter().position(|e| e.id == id) {
+            let node = self.nodes.get_mut(pos).expect("Node to exist at this position");
+            node.update(attrs);
+            Ok(())
+        } else {
+            Err(DigraphError::IdDoesNotExist(id))
+        }
     }
 
     pub fn remove_node(&mut self, id: i32) -> Result<(), DigraphError> {
@@ -151,7 +224,8 @@ impl Digraph {
 
     pub fn message(&mut self, msg: DigraphMessage) -> Result<(), DigraphError> {
         match msg {
-            DigraphMessage::AddNode => self.add_node(None),
+            DigraphMessage::AddNode(attrs) => self.add_node(Some(attrs)),
+            DigraphMessage::UpdateNode(id, attrs) => self.update_node(id, attrs),
             DigraphMessage::RemoveNode(id) => self.remove_node(id),
             DigraphMessage::AddLink(source_id, target_id) => {
                 self.add_link(source_id, target_id, None)
@@ -164,16 +238,18 @@ impl Digraph {
 #[cfg(test)]
 mod test {
 
+    use super::*;
+
     #[test]
     fn test_add_node() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         assert_eq!(dg.nodes.len(), 1);
     }
 
     #[test]
     fn test_add_multiple_nodes() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         let _ = dg.add_node(None);
         let _ = dg.add_node(None);
@@ -184,7 +260,7 @@ mod test {
 
     #[test]
     fn test_add_link() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         let _ = dg.add_node(None);
         let _ = dg.add_link(1, 2, None);
@@ -193,7 +269,7 @@ mod test {
 
     #[test]
     fn test_remove_node() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         assert_eq!(dg.nodes.len(), 1);
 
@@ -203,14 +279,14 @@ mod test {
 
     #[test]
     fn test_remove_node_that_does_not_exist() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let res = dg.remove_node(1);
-        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist(1)));
+        assert_eq!(res, Err(DigraphError::IdDoesNotExist(1)));
     }
 
     #[test]
     fn test_remove_link() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         let _ = dg.add_node(None);
         let _ = dg.add_link(1, 2, None);
@@ -221,14 +297,14 @@ mod test {
 
     #[test]
     fn test_remove_link_that_does_not_exist() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let res = dg.remove_link(1);
-        assert_eq!(res, Err(super::DigraphError::IdDoesNotExist(1)));
+        assert_eq!(res, Err(DigraphError::IdDoesNotExist(1)));
     }
 
     #[test]
     fn test_remove_node_with_links() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         let _ = dg.add_node(None);
         let _ = dg.add_link(1, 2, None);
@@ -241,7 +317,7 @@ mod test {
 
     #[test]
     fn test_serialization() {
-        let mut dg = super::Digraph::new();
+        let mut dg = Digraph::new();
         let _ = dg.add_node(None);
         let _ = dg.add_node(None);
         let _ = dg.add_link(1, 2, None);
@@ -255,48 +331,61 @@ mod test {
 
     #[test]
     fn test_message_add_node() {
-        let mut dg = super::Digraph::new();
-        dg.message(super::DigraphMessage::AddNode)
+        let mut dg = Digraph::new();
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can send a message");
         assert_eq!(dg.nodes.len(), 1);
     }
 
     #[test]
+    fn test_message_update_node() {
+        let mut dg = Digraph::new();
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+            .expect("Can send a message");
+        dg.message(DigraphMessage::UpdateNode(1, NodeAttributes{
+            name: Some("Test 1".into()),
+            labels: None,
+        })).expect("Can send a message");
+        assert_eq!(dg.nodes.len(), 1);
+        assert_eq!(dg.nodes.get(0).unwrap().name, "Test 1".to_string() );
+    }
+
+    #[test]
     fn test_message_remove_node() {
-        let mut dg = super::Digraph::new();
-        dg.message(super::DigraphMessage::AddNode)
+        let mut dg = Digraph::new();
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 1);
-        dg.message(super::DigraphMessage::RemoveNode(1))
+        dg.message(DigraphMessage::RemoveNode(1))
             .expect("Can remove a node via message");
         assert_eq!(dg.nodes.len(), 0);
     }
 
     #[test]
     fn test_message_add_link() {
-        let mut dg = super::Digraph::new();
-        dg.message(super::DigraphMessage::AddNode)
+        let mut dg = Digraph::new();
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can add a node via message");
-        dg.message(super::DigraphMessage::AddNode)
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 2);
-        dg.message(super::DigraphMessage::AddLink(1, 2))
+        dg.message(DigraphMessage::AddLink(1, 2))
             .expect("Can add a link via message");
         assert_eq!(dg.links.len(), 1);
     }
 
     #[test]
     fn test_message_remove_link() {
-        let mut dg = super::Digraph::new();
-        dg.message(super::DigraphMessage::AddNode)
+        let mut dg = Digraph::new();
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can add a node via message");
-        dg.message(super::DigraphMessage::AddNode)
+        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 2);
-        dg.message(super::DigraphMessage::AddLink(1, 2))
+        dg.message(DigraphMessage::AddLink(1, 2))
             .expect("Can add a link via message");
         assert_eq!(dg.links.len(), 1);
-        dg.message(super::DigraphMessage::RemoveLink(3))
+        dg.message(DigraphMessage::RemoveLink(3))
             .expect("Can remove a link via message");
         assert_eq!(dg.links.len(), 0);
         assert_eq!(dg.nodes.len(), 2);
