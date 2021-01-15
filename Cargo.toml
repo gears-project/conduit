@@ -13,15 +13,15 @@ uuid = { version = "0.8.1", features = ["serde", "v4"] }
 sqlx = { version = "0.4.2", features = [ "runtime-async-std-rustls", "sqlite", "migrate", "uuid" ] }
 async-std = { version = "1.6", features = [ "attributes" ] }
 async-trait = "0.1.42"
-async-graphql = { version = "2.0", features = ["log", "tracing", "uuid", "chrono", "apollo_tracing"] }
-async-graphql-tide = "2.0"
+async-graphql = { version = "2.4.10", features = ["log", "tracing", "uuid", "chrono", "apollo_tracing"] }
+async-graphql-tide = "2.4.10"
 tide = "0.15"
 futures = "0.3"
+env_logger = "0.7.1"
 # libsqlite3-sys = { version = "*", features = ["bundled"] }
 
 [dev-dependencies]
 tempdir =  "0.3"
 log = "0.4"
-env_logger = "0.7.1"
 assert-json-diff = "1.1.0"
 surf = "2.0.0-alpha.5"
