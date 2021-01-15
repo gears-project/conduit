@@ -11,7 +11,7 @@ pub enum DigraphError {
 impl fmt::Display for DigraphError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            DigraphError::IdDoesNotExist(e) => write!(f, "id:{}", e),
+            DigraphError::IdDoesNotExist(e) => write!(f, "id does not exist : {}", e),
         }
     }
 }
@@ -39,8 +39,7 @@ pub struct Digraph {
     pub labels: Labels,
 }
 
-#[derive(async_graphql::SimpleObject)]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(async_graphql::SimpleObject, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Node {
     pub id: i32,
     pub name: String,
@@ -172,7 +171,10 @@ impl Digraph {
 
     pub fn update_node(&mut self, id: i32, attrs: NodeAttributes) -> Result<(), DigraphError> {
         if let Some(pos) = self.nodes.iter().position(|e| e.id == id) {
-            let node = self.nodes.get_mut(pos).expect("Node to exist at this position");
+            let node = self
+                .nodes
+                .get_mut(pos)
+                .expect("Node to exist at this position");
             node.update(attrs);
             Ok(())
         } else {
@@ -342,12 +344,16 @@ mod test {
         let mut dg = Digraph::new();
         dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
             .expect("Can send a message");
-        dg.message(DigraphMessage::UpdateNode(1, NodeAttributes{
-            name: Some("Test 1".into()),
-            labels: None,
-        })).expect("Can send a message");
+        dg.message(DigraphMessage::UpdateNode(
+            1,
+            NodeAttributes {
+                name: Some("Test 1".into()),
+                labels: None,
+            },
+        ))
+        .expect("Can send a message");
         assert_eq!(dg.nodes.len(), 1);
-        assert_eq!(dg.nodes.get(0).unwrap().name, "Test 1".to_string() );
+        assert_eq!(dg.nodes.get(0).unwrap().name, "Test 1".to_string());
     }
 
     #[test]
