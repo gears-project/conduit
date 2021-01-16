@@ -280,6 +280,28 @@ mod test {
     }
 
     #[test]
+    fn test_id_generation() {
+        let mut dg = Digraph::new();
+        let _ = dg.add_node(None);
+        let _ = dg.add_node(None);
+        let _ = dg.add_node(None);
+
+        assert_eq!(dg.nodes[0].id, 1);
+        assert_eq!(dg.nodes[1].id, 2);
+        assert_eq!(dg.nodes[2].id, 3);
+
+        let _ = dg.remove_node(2);
+        assert_eq!(dg.nodes.len(), 2);
+
+        let _ = dg.add_node(None);
+
+        assert_eq!(dg.nodes[0].id, 1);
+        assert_eq!(dg.nodes[1].id, 3);
+        assert_eq!(dg.nodes[2].id, 4);
+
+    }
+
+    #[test]
     fn test_remove_node_that_does_not_exist() {
         let mut dg = Digraph::new();
         let res = dg.remove_node(1);
@@ -396,4 +418,5 @@ mod test {
         assert_eq!(dg.links.len(), 0);
         assert_eq!(dg.nodes.len(), 2);
     }
+
 }
