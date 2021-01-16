@@ -23,9 +23,11 @@ pub fn serve() -> Result<()> {
 }
 
 async fn run() -> Result<()> {
+    env_logger::init();
     let listen_addr = env::var("LISTEN_ADDR").unwrap_or_else(|_| "localhost:8000".to_owned());
 
-    let storage = Sqlite::setup(":memory:".into())
+    // let storage = Sqlite::setup(":memory:".into())
+    let storage = Sqlite::setup("test.db".into())
         .await
         .expect("The sqlite storage to be set up");
     let _ = storage

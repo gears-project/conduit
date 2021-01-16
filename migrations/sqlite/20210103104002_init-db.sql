@@ -1,6 +1,6 @@
 CREATE TABLE projects (
   id                TEXT PRIMARY KEY NOT NULL,
-  version           INT DEFAULT 0 NOT NULL,
+  version           INTEGER DEFAULT 0 NOT NULL,
   name              TEXT NOT NULL,
   body              TEXT NOT NULL,
 

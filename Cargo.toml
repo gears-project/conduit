@@ -10,7 +10,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "*"
 json-patch = "0.2.6"
 uuid = { version = "0.8.1", features = ["serde", "v4"] }
-sqlx = { version = "0.4.2", features = [ "runtime-async-std-rustls", "sqlite", "migrate", "uuid" ] }
+sqlx = { version = "0.4.2", features = [ "macros", "runtime-async-std-rustls", "sqlite", "migrate", "uuid" ] }
 async-std = { version = "1.6", features = [ "attributes" ] }
 async-trait = "0.1.42"
 async-graphql = { version = "2.4.10", features = ["log", "tracing", "uuid", "chrono", "apollo_tracing"] }

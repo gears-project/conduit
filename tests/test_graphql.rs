@@ -89,6 +89,8 @@ async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
     let doc1 = DigraphDocument::create(&project);
     let doc1_id = doc1.id.to_hyphenated().to_string();
 
+    println!("DOC PROJECT OWNER IS {}", doc1.project_id);
+
     let doc2 = DigraphDocument::create(&project);
     let doc2_id = doc2.id.to_hyphenated().to_string();
 
@@ -226,9 +228,9 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
     let doc_id = serde_json::to_string(
         create_digraph_res_json
             .pointer("/data/digraphCreate/id")
-            .expect("Node ID to exist in graphql response"),
+            .expect("Doc ID to exist in graphql response"),
     )
-    .expect("Node ID value to be deserializable");
+    .expect("Doc ID value to be deserializable");
 
     let create_node_res = schema
         .execute(format!(
@@ -240,6 +242,12 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
               ) {{
                 id
                 name
+                body {{
+                  nodes {{
+                    id
+                    name
+                  }}
+                }}
               }}
             }}",
             project_id, doc_id
@@ -253,11 +261,72 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
         expected: json!({
             "data": {
                 "digraphAddNode": {
+                    "name": "New",
+                    "body": {
+                        "nodes": [
+                            {
+                                "id": 1
+                            }
+                        ]
+                    }
+
+                }
+            }
+        })
+    );
+
+    let node_id = serde_json::to_string(
+        create_node_res_json
+            .pointer("/data/digraphAddNode/body/nodes/0/id")
+            .expect("Node ID to exist in graphql response"),
+    )
+    .expect("Node ID value to be deserializable");
+
+    let update_node_res = schema
+        .execute(format!(
+            "
+            mutation update {{
+              digraphUpdateNode(
+                projectId: \"{}\",
+                docId: {},
+                nodeId: {},
+              ) {{
+                id
+                name
+                body {{
+                  nodes {{
+                    id
+                    name
+                  }}
+                }}
+              }}
+            }}",
+            project_id, doc_id, node_id
+        ))
+        .await;
+
+    let update_node_res_json = serde_json::to_value(update_node_res)
+        .expect("GraphQL response to be deserializable to Value");
+
+    assert_json_include!(
+        actual: update_node_res_json.clone(),
+        expected: json!({
+            "data": {
+                "digraphUpdateNode": {
                     "name": "New"
                 }
             }
         })
     );
+
+    let updated_node_id = serde_json::to_string(
+        update_node_res_json
+            .pointer("/data/digraphUpdateNode/body/nodes/0/id")
+            .expect("Node ID to exist in graphql response"),
+    )
+    .expect("Node ID value to be deserializable");
+
+    assert_eq!(updated_node_id, "1".to_string());
 
     Ok(())
 }

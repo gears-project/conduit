@@ -214,6 +214,9 @@ impl Engine for Sqlite {
             .execute(&mut tx)
             .await?;
         }
+
+        let _ = tx.commit().await?;
+
         Ok(())
     }
 
@@ -262,9 +265,25 @@ impl Engine for Sqlite {
     }
 
     async fn update_project(&self, doc: Project) -> Result<(), EngineError> {
+        let _result = sqlx::query!(
+            "
+        UPDATE projects SET name=?, version=?, body=? WHERE id=?
+        ",
+            doc.name,
+            doc.version,
+            doc.body,
+            doc.id,
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    /*
+    async fn update_project(&self, doc: Project) -> Result<(), EngineError> {
         let _result = sqlx::query(
             "
-        UPDATE projects SET name=? version=? body=? WHERE id=?
+        UPDATE projects SET name=?, version=?, body=? WHERE id=?
         ",
         )
         .bind(doc.name)
@@ -275,6 +294,7 @@ impl Engine for Sqlite {
         .await?;
         Ok(())
     }
+    */
 
     async fn delete_project(&self, id: &Uuid) -> Result<(), EngineError> {
         sqlx::query("DELETE FROM projects WHERE id=?")
