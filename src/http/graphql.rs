@@ -141,8 +141,8 @@ impl MutationRoot {
         project_id: Uuid,
         doc_id: Uuid,
     ) -> FieldResult<DigraphDocument> {
-        use crate::model::digraph::{DigraphMessage, NodeAttributes};
-        let msg = DigraphMessage::AddNode(NodeAttributes::default());
+        use crate::model::digraph::{DigraphMessage, NodeSettings};
+        let msg = DigraphMessage::AddNode(NodeSettings::default());
 
         let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
 
@@ -156,8 +156,8 @@ impl MutationRoot {
         doc_id: Uuid,
         node_id: i32,
     ) -> FieldResult<DigraphDocument> {
-        use crate::model::digraph::{DigraphMessage, NodeAttributes};
-        let msg = DigraphMessage::UpdateNode(node_id, NodeAttributes::default());
+        use crate::model::digraph::{DigraphMessage, NodeSettings};
+        let msg = DigraphMessage::UpdateNode(node_id, NodeSettings::default());
 
         let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
 

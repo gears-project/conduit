@@ -11,13 +11,6 @@ use super::graphql::{MutationRoot, Query};
 use crate::storage::engine::{Engine, EngineContainer};
 use crate::storage::sqlite::Sqlite;
 
-/*
-#[derive(Clone)]
-struct AppState {
-    schema: Schema<Query, EmptyMutation, EmptySubscription>,
-}
-*/
-
 pub fn serve() -> Result<()> {
     task::block_on(run())
 }

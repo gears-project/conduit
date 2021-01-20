@@ -24,8 +24,8 @@ impl error::Error for DigraphError {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum DigraphMessage {
-    AddNode(NodeAttributes),
-    UpdateNode(i32, NodeAttributes),
+    AddNode(NodeSettings),
+    UpdateNode(i32, NodeSettings),
     RemoveNode(i32),
     AddLink(i32, i32),
     RemoveLink(i32),
@@ -47,13 +47,13 @@ pub struct Node {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct NodeAttributes {
+pub struct NodeSettings {
     pub name: Option<String>,
     pub labels: Option<Labels>,
 }
 
 impl Node {
-    pub fn update(&mut self, attrs: NodeAttributes) -> () {
+    pub fn update(&mut self, attrs: NodeSettings) -> () {
         if let Some(name) = attrs.name {
             self.name = name;
         }
@@ -66,7 +66,7 @@ impl Node {
     }
 }
 
-impl Default for NodeAttributes {
+impl Default for NodeSettings {
     fn default() -> Self {
         Self {
             name: Some("".to_string()),
@@ -158,7 +158,7 @@ impl Digraph {
         self.highest_id() + 1
     }
 
-    pub fn add_node(&mut self, attrs: Option<NodeAttributes>) -> Result<(), DigraphError> {
+    pub fn add_node(&mut self, attrs: Option<NodeSettings>) -> Result<(), DigraphError> {
         let attrs = attrs.unwrap_or_default();
 
         self.nodes.push(Node {
@@ -169,7 +169,7 @@ impl Digraph {
         Ok(())
     }
 
-    pub fn update_node(&mut self, id: i32, attrs: NodeAttributes) -> Result<(), DigraphError> {
+    pub fn update_node(&mut self, id: i32, attrs: NodeSettings) -> Result<(), DigraphError> {
         if let Some(pos) = self.nodes.iter().position(|e| e.id == id) {
             let node = self
                 .nodes
@@ -298,7 +298,6 @@ mod test {
         assert_eq!(dg.nodes[0].id, 1);
         assert_eq!(dg.nodes[1].id, 3);
         assert_eq!(dg.nodes[2].id, 4);
-
     }
 
     #[test]
@@ -356,7 +355,7 @@ mod test {
     #[test]
     fn test_message_add_node() {
         let mut dg = Digraph::new();
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can send a message");
         assert_eq!(dg.nodes.len(), 1);
     }
@@ -364,11 +363,11 @@ mod test {
     #[test]
     fn test_message_update_node() {
         let mut dg = Digraph::new();
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can send a message");
         dg.message(DigraphMessage::UpdateNode(
             1,
-            NodeAttributes {
+            NodeSettings {
                 name: Some("Test 1".into()),
                 labels: None,
             },
@@ -381,7 +380,7 @@ mod test {
     #[test]
     fn test_message_remove_node() {
         let mut dg = Digraph::new();
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 1);
         dg.message(DigraphMessage::RemoveNode(1))
@@ -392,9 +391,9 @@ mod test {
     #[test]
     fn test_message_add_link() {
         let mut dg = Digraph::new();
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 2);
         dg.message(DigraphMessage::AddLink(1, 2))
@@ -405,9 +404,9 @@ mod test {
     #[test]
     fn test_message_remove_link() {
         let mut dg = Digraph::new();
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
-        dg.message(DigraphMessage::AddNode(NodeAttributes::default()))
+        dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 2);
         dg.message(DigraphMessage::AddLink(1, 2))
@@ -418,5 +417,4 @@ mod test {
         assert_eq!(dg.links.len(), 0);
         assert_eq!(dg.nodes.len(), 2);
     }
-
 }
