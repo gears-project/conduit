@@ -46,6 +46,7 @@ pub struct Node {
     pub labels: Labels,
 }
 
+#[derive(async_graphql::InputObject)]
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct NodeSettings {
     pub name: Option<String>,

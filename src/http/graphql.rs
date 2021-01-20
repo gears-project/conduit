@@ -28,7 +28,7 @@ macro_rules! register_graphql_doc {
 }
 
 use crate::doc::document::DigraphDocument;
-use crate::model::digraph::{Digraph, DigraphMessage};
+use crate::model::digraph::{Digraph, DigraphMessage, NodeSettings};
 
 register_graphql_doc!(DigraphDocument, Digraph);
 
@@ -140,13 +140,12 @@ impl MutationRoot {
         ctx: &Context<'_>,
         project_id: Uuid,
         doc_id: Uuid,
+        attrs: Option<NodeSettings>,
     ) -> FieldResult<DigraphDocument> {
-        use crate::model::digraph::{DigraphMessage, NodeSettings};
-        let msg = DigraphMessage::AddNode(NodeSettings::default());
+        use crate::model::digraph::DigraphMessage;
+        let msg = DigraphMessage::AddNode(attrs.unwrap_or_default());
 
-        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
-
-        Ok(doc)
+        Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
     }
 
     async fn digraph_update_node(
@@ -155,13 +154,12 @@ impl MutationRoot {
         project_id: Uuid,
         doc_id: Uuid,
         node_id: i32,
+        attrs: Option<NodeSettings>,
     ) -> FieldResult<DigraphDocument> {
-        use crate::model::digraph::{DigraphMessage, NodeSettings};
-        let msg = DigraphMessage::UpdateNode(node_id, NodeSettings::default());
+        use crate::model::digraph::DigraphMessage;
+        let msg = DigraphMessage::UpdateNode(node_id, attrs.unwrap_or_default());
 
-        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
-
-        Ok(doc)
+        Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
     }
 
     async fn digraph_remove_node(
