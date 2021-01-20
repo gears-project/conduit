@@ -89,8 +89,6 @@ async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
     let doc1 = DigraphDocument::create(&project);
     let doc1_id = doc1.id.to_hyphenated().to_string();
 
-    println!("DOC PROJECT OWNER IS {}", doc1.project_id);
-
     let doc2 = DigraphDocument::create(&project);
     let doc2_id = doc2.id.to_hyphenated().to_string();
 
@@ -238,6 +236,9 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
             mutation add {{
               digraphAddNode(
                 projectId: \"{}\",
+                attrs: {{
+                    name: \"A new name\",
+                }},
                 docId: {}
               ) {{
                 id
@@ -265,7 +266,8 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
                     "body": {
                         "nodes": [
                             {
-                                "id": 1
+                                "id": 1,
+                                "name": "A new name"
                             }
                         ]
                     }
@@ -290,6 +292,9 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
                 projectId: \"{}\",
                 docId: {},
                 nodeId: {},
+                attrs: {{
+                    name: \"An updated name\"
+                }},
               ) {{
                 id
                 name
@@ -313,7 +318,15 @@ async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
         expected: json!({
             "data": {
                 "digraphUpdateNode": {
-                    "name": "New"
+                    "name": "New",
+                    "body": {
+                        "nodes": [
+                            {
+                                "id": 1, // node_id,
+                                "name": "An updated name"
+                            }
+                        ]
+                    }
                 }
             }
         })

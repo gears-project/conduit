@@ -114,7 +114,6 @@ async fn digraph_change(
     if let Err(err) = doc.body.message(msg) {
         Err(EngineError::Storage(format!("{}", err)))
     } else {
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
         let _ = storage.update_document(&mut doc.clone().into()).await?;
         Ok(doc)
     }
@@ -172,9 +171,7 @@ impl MutationRoot {
         use crate::model::digraph::DigraphMessage;
         let msg = DigraphMessage::RemoveNode(node_id);
 
-        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
-
-        Ok(doc)
+        Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
     }
 
     async fn digraph_add_link(
@@ -188,9 +185,7 @@ impl MutationRoot {
         use crate::model::digraph::DigraphMessage;
         let msg = DigraphMessage::AddLink(source_id, target_id);
 
-        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
-
-        Ok(doc)
+        Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
     }
 
     async fn digraph_remove_link(
@@ -203,9 +198,7 @@ impl MutationRoot {
         use crate::model::digraph::DigraphMessage;
         let msg = DigraphMessage::RemoveLink(link_id);
 
-        let doc = digraph_change(ctx, project_id, doc_id, msg).await?;
-
-        Ok(doc)
+        Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
     }
 }
 
