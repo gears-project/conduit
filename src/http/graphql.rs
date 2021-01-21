@@ -28,7 +28,7 @@ macro_rules! register_graphql_doc {
 }
 
 use crate::doc::document::DigraphDocument;
-use crate::model::digraph::{Digraph, DigraphMessage, NodeSettings};
+use crate::model::digraph::{Digraph, DigraphMessage, NodeSettings, LinkSettings};
 
 register_graphql_doc!(DigraphDocument, Digraph);
 
@@ -181,9 +181,24 @@ impl MutationRoot {
         doc_id: Uuid,
         source_id: i32,
         target_id: i32,
+        attrs: Option<LinkSettings>,
     ) -> FieldResult<DigraphDocument> {
         use crate::model::digraph::DigraphMessage;
-        let msg = DigraphMessage::AddLink(source_id, target_id);
+        let msg = DigraphMessage::AddLink(source_id, target_id, attrs.unwrap_or_default());
+
+        Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
+    }
+
+    async fn digraph_update_link(
+        &self,
+        ctx: &Context<'_>,
+        project_id: Uuid,
+        doc_id: Uuid,
+        link_id: i32,
+        attrs: Option<LinkSettings>,
+    ) -> FieldResult<DigraphDocument> {
+        use crate::model::digraph::DigraphMessage;
+        let msg = DigraphMessage::UpdateLink(link_id, attrs.unwrap_or_default());
 
         Ok(digraph_change(ctx, project_id, doc_id, msg).await?)
     }

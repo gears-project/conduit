@@ -27,7 +27,8 @@ pub enum DigraphMessage {
     AddNode(NodeSettings),
     UpdateNode(i32, NodeSettings),
     RemoveNode(i32),
-    AddLink(i32, i32),
+    AddLink(i32, i32, LinkSettings),
+    UpdateLink(i32, LinkSettings),
     RemoveLink(i32),
 }
 
@@ -84,7 +85,7 @@ pub struct Link {
     pub labels: Labels,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(async_graphql::InputObject, Serialize, Deserialize, Debug, PartialEq)]
 pub struct LinkSettings {
     pub name: Option<String>,
     pub labels: Option<Labels>,
@@ -216,6 +217,19 @@ impl Digraph {
         }
     }
 
+    pub fn update_link(&mut self, id: i32, attrs: LinkSettings) -> Result<(), DigraphError> {
+        if let Some(pos) = self.links.iter().position(|e| e.id == id) {
+            let link = self
+                .links
+                .get_mut(pos)
+                .expect("Link to exist at this position");
+            link.update(attrs);
+            Ok(())
+        } else {
+            Err(DigraphError::IdDoesNotExist(id))
+        }
+    }
+
     pub fn remove_link(&mut self, id: i32) -> Result<(), DigraphError> {
         if let Some(pos) = self.links.iter().position(|e| e.id == id) {
             self.links.remove(pos);
@@ -230,8 +244,11 @@ impl Digraph {
             DigraphMessage::AddNode(attrs) => self.add_node(Some(attrs)),
             DigraphMessage::UpdateNode(id, attrs) => self.update_node(id, attrs),
             DigraphMessage::RemoveNode(id) => self.remove_node(id),
-            DigraphMessage::AddLink(source_id, target_id) => {
-                self.add_link(source_id, target_id, None)
+            DigraphMessage::AddLink(source_id, target_id, attrs) => {
+                self.add_link(source_id, target_id, Some(attrs))
+            }
+            DigraphMessage::UpdateLink(id, attrs) => {
+                self.update_link(id, attrs)
             }
             DigraphMessage::RemoveLink(id) => self.remove_link(id),
         }
@@ -397,7 +414,7 @@ mod test {
         dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 2);
-        dg.message(DigraphMessage::AddLink(1, 2))
+        dg.message(DigraphMessage::AddLink(1, 2, LinkSettings::default()))
             .expect("Can add a link via message");
         assert_eq!(dg.links.len(), 1);
     }
@@ -410,7 +427,7 @@ mod test {
         dg.message(DigraphMessage::AddNode(NodeSettings::default()))
             .expect("Can add a node via message");
         assert_eq!(dg.nodes.len(), 2);
-        dg.message(DigraphMessage::AddLink(1, 2))
+        dg.message(DigraphMessage::AddLink(1, 2, LinkSettings::default()))
             .expect("Can add a link via message");
         assert_eq!(dg.links.len(), 1);
         dg.message(DigraphMessage::RemoveLink(3))
