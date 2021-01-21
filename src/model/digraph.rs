@@ -85,25 +85,24 @@ pub struct Link {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct LinkAttributes {
+pub struct LinkSettings {
     pub name: Option<String>,
-    pub source: Option<i32>,
-    pub target: Option<i32>,
     pub labels: Option<Labels>,
 }
 
+impl Default for LinkSettings {
+    fn default() -> Self {
+        Self {
+            name: Some("name".into()),
+            labels: Some(Labels::new()),
+        }
+    }
+}
+
 impl Link {
-    pub fn update(&mut self, attrs: LinkAttributes) -> () {
+    pub fn update(&mut self, attrs: LinkSettings) -> () {
         if let Some(name) = attrs.name {
             self.name = name;
-        }
-
-        if let Some(source) = attrs.source {
-            self.source = source;
-        }
-
-        if let Some(target) = attrs.target {
-            self.target = target;
         }
 
         if let Some(labels) = attrs.labels {
@@ -196,9 +195,11 @@ impl Digraph {
         &mut self,
         source: i32,
         target: i32,
-        labels: Option<Labels>,
+        attrs: Option<LinkSettings>,
     ) -> Result<(), DigraphError> {
         let ids = self.node_ids();
+        let attrs = attrs.unwrap_or_default();
+
         if !ids.contains(&source) {
             Err(DigraphError::IdDoesNotExist(source))
         } else if !ids.contains(&target) {
@@ -206,10 +207,10 @@ impl Digraph {
         } else {
             self.links.push(Link {
                 id: self.next_id(),
-                name: "".into(),
+                name: attrs.name.unwrap_or("link".into()),
                 source,
                 target,
-                labels: labels.unwrap_or_default(),
+                labels: attrs.labels.unwrap_or(Labels::new()),
             });
             Ok(())
         }
