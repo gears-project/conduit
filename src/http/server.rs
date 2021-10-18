@@ -1,21 +1,30 @@
 use async_graphql::extensions::{ApolloTracing, Logger};
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{EmptySubscription, Schema};
-use async_std::task;
+use async_graphql::{Schema, EmptySubscription};
+use async_graphql::{Request, Response};
+
+use axum::response::IntoResponse;
+use axum::{extract::Extension, handler::get, response::Html, AddExtensionLayer, Json, Router};
 
 use std::env;
-use tide::{http::mime, Body, Response, StatusCode};
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 use super::graphql::{MutationRoot, Query};
 use crate::storage::engine::{Engine, EngineContainer};
 use crate::storage::sqlite::Sqlite;
 
-pub fn serve() -> Result<()> {
-    task::block_on(run())
+async fn graphql_handler(schema: Extension<Schema<Query, MutationRoot, EmptySubscription>>, req: Json<Request>) -> Json<Response> {
+        schema.execute(req.0).await.into()
 }
 
-async fn run() -> Result<()> {
+async fn graphql_playground() -> impl IntoResponse {
+    Html(playground_source(GraphQLPlaygroundConfig::new("/")))
+}
+
+pub async fn serve() -> Result<(), ()> {
+    run().await
+}
+
+async fn run() -> Result<(), ()> {
     env_logger::init();
     let listen_addr = env::var("LISTEN_ADDR").unwrap_or_else(|_| "localhost:8000".to_owned());
 
@@ -45,21 +54,15 @@ async fn run() -> Result<()> {
 
     println!("Playground: http://{}", listen_addr);
 
-    let mut app = tide::new();
+    let app = Router::new()
+        .route("/", get(graphql_playground).post(graphql_handler))
+        .layer(AddExtensionLayer::new(schema));
 
-    app.at("/graphql")
-        .post(async_graphql_tide::endpoint(schema));
+    println!("Playground: http://localhost:3000");
 
-    app.at("/").get(|_| async move {
-        let mut resp = Response::new(StatusCode::Ok);
-        resp.set_body(Body::from_string(playground_source(
-            GraphQLPlaygroundConfig::new("/graphql"),
-        )));
-        resp.set_content_type(mime::HTML);
-        Ok(resp)
-    });
-
-    app.listen(listen_addr).await?;
+    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        .serve(app.into_make_service())
+        .await.unwrap();
 
     Ok(())
 }

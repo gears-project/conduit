@@ -2,7 +2,7 @@ use clap::{crate_authors, crate_version, load_yaml, App};
 
 extern crate conduit;
 
-#[async_std::main]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from(yaml)
