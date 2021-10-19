@@ -25,7 +25,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     } else if let Some(ref _matches) = matches.subcommand_matches("serve") {
-        let _ = conduit::http::server::serve();
+        println!("Running command 'serve'");
+        let _ = conduit::http::server::serve().await;
+    } else {
+        println!("none: No matching command found");
     }
 
     Ok(())

@@ -8,6 +8,8 @@ use axum::{extract::Extension, handler::get, response::Html, AddExtensionLayer, 
 
 use std::env;
 
+use std::net::SocketAddr;
+
 use super::graphql::{MutationRoot, Query};
 use crate::storage::engine::{Engine, EngineContainer};
 use crate::storage::sqlite::Sqlite;
@@ -21,10 +23,6 @@ async fn graphql_playground() -> impl IntoResponse {
 }
 
 pub async fn serve() -> Result<(), ()> {
-    run().await
-}
-
-async fn run() -> Result<(), ()> {
     env_logger::init();
     let listen_addr = env::var("LISTEN_ADDR").unwrap_or_else(|_| "localhost:8000".to_owned());
 
@@ -52,19 +50,23 @@ async fn run() -> Result<(), ()> {
         .data(engine)
         .finish();
 
-    println!("Playground: http://{}", listen_addr);
-
     let app = Router::new()
         .route("/", get(graphql_playground).post(graphql_handler))
         .layer(AddExtensionLayer::new(schema));
 
-    println!("Playground: http://localhost:3000");
+    println!("Playground: http://{}", listen_addr);
 
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    match axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
-        .await.unwrap();
-
-    Ok(())
+        .await {
+            Ok(_) => {
+                Ok(())
+            },
+            Err(err) => {
+                println!("Err {}", err);
+                Err(())
+            }
+        }
 }
 
 /*
