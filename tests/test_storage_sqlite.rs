@@ -102,7 +102,7 @@ async fn test_sqlite_engine_cascading_deletes() -> std::io::Result<()> {
         .expect("The sqlite storage to be migrated");
 
     let project = Project::new(conduit::util::naming::empty_uuid());
-    let project_id = project.id.clone();
+    let project_id = project.id;
 
     let _ = storage
         .store_project(project.clone())
