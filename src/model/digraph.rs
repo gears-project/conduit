@@ -163,7 +163,7 @@ impl Digraph {
 
         self.nodes.push(Node {
             id: self.next_id(),
-            name: attrs.name.unwrap_or("".into()),
+            name: attrs.name.unwrap_or_else(|| "".into()),
             labels: attrs.labels.unwrap_or_default(),
         });
         Ok(())
@@ -208,7 +208,7 @@ impl Digraph {
         } else {
             self.links.push(Link {
                 id: self.next_id(),
-                name: attrs.name.unwrap_or("link".into()),
+                name: attrs.name.unwrap_or_else(|| "link".into()),
                 source,
                 target,
                 labels: attrs.labels.unwrap_or_default(),
