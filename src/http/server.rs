@@ -1,6 +1,6 @@
 use async_graphql::extensions::{ApolloTracing, Logger};
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{Schema, EmptySubscription};
+use async_graphql::{EmptySubscription, Schema};
 use async_graphql::{Request, Response};
 
 use axum::response::IntoResponse;
@@ -8,14 +8,15 @@ use axum::{extract::Extension, handler::get, response::Html, AddExtensionLayer, 
 
 use std::env;
 
-
-
 use super::graphql::{MutationRoot, Query};
 use crate::storage::engine::{Engine, EngineContainer};
 use crate::storage::sqlite::Sqlite;
 
-async fn graphql_handler(schema: Extension<Schema<Query, MutationRoot, EmptySubscription>>, req: Json<Request>) -> Json<Response> {
-        schema.execute(req.0).await.into()
+async fn graphql_handler(
+    schema: Extension<Schema<Query, MutationRoot, EmptySubscription>>,
+    req: Json<Request>,
+) -> Json<Response> {
+    schema.execute(req.0).await.into()
 }
 
 async fn graphql_playground() -> impl IntoResponse {
@@ -58,15 +59,14 @@ pub async fn serve() -> Result<(), ()> {
 
     match axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
-        .await {
-            Ok(_) => {
-                Ok(())
-            },
-            Err(err) => {
-                println!("Err {}", err);
-                Err(())
-            }
+        .await
+    {
+        Ok(_) => Ok(()),
+        Err(err) => {
+            println!("Err {}", err);
+            Err(())
         }
+    }
 }
 
 /*

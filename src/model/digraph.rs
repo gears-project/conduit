@@ -247,9 +247,7 @@ impl Digraph {
             DigraphMessage::AddLink(source_id, target_id, attrs) => {
                 self.add_link(source_id, target_id, Some(attrs))
             }
-            DigraphMessage::UpdateLink(id, attrs) => {
-                self.update_link(id, attrs)
-            }
+            DigraphMessage::UpdateLink(id, attrs) => self.update_link(id, attrs),
             DigraphMessage::RemoveLink(id) => self.remove_link(id),
         }
     }

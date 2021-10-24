@@ -28,7 +28,7 @@ macro_rules! register_graphql_doc {
 }
 
 use crate::doc::document::DigraphDocument;
-use crate::model::digraph::{Digraph, DigraphMessage, NodeSettings, LinkSettings};
+use crate::model::digraph::{Digraph, DigraphMessage, LinkSettings, NodeSettings};
 
 register_graphql_doc!(DigraphDocument, Digraph);
 
