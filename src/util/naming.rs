@@ -14,5 +14,5 @@ pub fn label_to_uuid(id: &str) -> Result<Uuid, String> {
 }
 
 pub fn empty_uuid() -> Uuid {
-    label_to_uuid(&EMPTY_ID).unwrap()
+    label_to_uuid(EMPTY_ID).unwrap()
 }

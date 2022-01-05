@@ -325,7 +325,7 @@ impl Engine for Sqlite {
 
 #[cfg(test)]
 mod test {
-    #[async_std::test]
+    #[tokio::test]
     async fn test_sqlite() -> std::io::Result<()> {
         let storage = super::Sqlite::setup(":memory:".into())
             .await

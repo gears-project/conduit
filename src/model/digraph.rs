@@ -54,7 +54,7 @@ pub struct NodeSettings {
 }
 
 impl Node {
-    pub fn update(&mut self, attrs: NodeSettings) -> () {
+    pub fn update(&mut self, attrs: NodeSettings) {
         if let Some(name) = attrs.name {
             self.name = name;
         }
@@ -101,7 +101,7 @@ impl Default for LinkSettings {
 }
 
 impl Link {
-    pub fn update(&mut self, attrs: LinkSettings) -> () {
+    pub fn update(&mut self, attrs: LinkSettings) {
         if let Some(name) = attrs.name {
             self.name = name;
         }
@@ -163,8 +163,8 @@ impl Digraph {
 
         self.nodes.push(Node {
             id: self.next_id(),
-            name: attrs.name.unwrap_or("".into()),
-            labels: attrs.labels.unwrap_or(Labels::new()),
+            name: attrs.name.unwrap_or_else(|| "".into()),
+            labels: attrs.labels.unwrap_or_default(),
         });
         Ok(())
     }
@@ -208,10 +208,10 @@ impl Digraph {
         } else {
             self.links.push(Link {
                 id: self.next_id(),
-                name: attrs.name.unwrap_or("link".into()),
+                name: attrs.name.unwrap_or_else(|| "link".into()),
                 source,
                 target,
-                labels: attrs.labels.unwrap_or(Labels::new()),
+                labels: attrs.labels.unwrap_or_default(),
             });
             Ok(())
         }
@@ -247,9 +247,7 @@ impl Digraph {
             DigraphMessage::AddLink(source_id, target_id, attrs) => {
                 self.add_link(source_id, target_id, Some(attrs))
             }
-            DigraphMessage::UpdateLink(id, attrs) => {
-                self.update_link(id, attrs)
-            }
+            DigraphMessage::UpdateLink(id, attrs) => self.update_link(id, attrs),
             DigraphMessage::RemoveLink(id) => self.remove_link(id),
         }
     }

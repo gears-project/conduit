@@ -10,7 +10,7 @@ use conduit::storage::sqlite::Sqlite;
 use assert_json_diff::{assert_json_eq, assert_json_include};
 use serde_json::json;
 
-#[async_std::test]
+#[tokio::test]
 async fn test_graphql_schema() -> std::io::Result<()> {
     let _ = env_logger::try_init();
 
@@ -66,7 +66,7 @@ async fn test_graphql_schema() -> std::io::Result<()> {
     Ok(())
 }
 
-#[async_std::test]
+#[tokio::test]
 async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
     let _ = env_logger::try_init();
 
@@ -171,7 +171,7 @@ async fn test_graphql_schema_query_project_documents() -> std::io::Result<()> {
     Ok(())
 }
 
-#[async_std::test]
+#[tokio::test]
 async fn test_graphql_schema_digraph_operations() -> std::io::Result<()> {
     let _ = env_logger::try_init();
 

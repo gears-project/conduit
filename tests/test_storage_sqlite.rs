@@ -3,7 +3,7 @@ use tempdir::TempDir;
 extern crate conduit;
 use conduit::storage::sqlite::Sqlite;
 
-#[async_std::test]
+#[tokio::test]
 async fn test_sqlite_in_memory() -> std::io::Result<()> {
     let _ = env_logger::try_init();
     let storage = Sqlite::setup(":memory:".into())
@@ -20,7 +20,7 @@ async fn test_sqlite_in_memory() -> std::io::Result<()> {
     Ok(())
 }
 
-#[async_std::test]
+#[tokio::test]
 async fn test_sqlite_on_disk() -> std::io::Result<()> {
     let _ = env_logger::try_init();
     let dir = TempDir::new("").expect("To be able to create a temporary directory");
@@ -39,7 +39,7 @@ async fn test_sqlite_on_disk() -> std::io::Result<()> {
     Ok(())
 }
 
-#[async_std::test]
+#[tokio::test]
 async fn test_sqlite_engine_functions() -> std::io::Result<()> {
     use conduit::doc::document::{DigraphDocument, RawDocument};
     use conduit::doc::project::Project;
@@ -85,7 +85,7 @@ async fn test_sqlite_engine_functions() -> std::io::Result<()> {
     Ok(())
 }
 
-#[async_std::test]
+#[tokio::test]
 async fn test_sqlite_engine_cascading_deletes() -> std::io::Result<()> {
     use conduit::doc::document::DigraphDocument;
     use conduit::doc::project::Project;
@@ -102,7 +102,7 @@ async fn test_sqlite_engine_cascading_deletes() -> std::io::Result<()> {
         .expect("The sqlite storage to be migrated");
 
     let project = Project::new(conduit::util::naming::empty_uuid());
-    let project_id = project.id.clone();
+    let project_id = project.id;
 
     let _ = storage
         .store_project(project.clone())

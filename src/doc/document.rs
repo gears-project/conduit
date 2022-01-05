@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -108,10 +110,10 @@ pub enum DocType {
     Digraph,
 }
 
-impl DocType {
-    pub fn to_string(&self) -> String {
+impl fmt::Display for DocType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Digraph => "digraph".to_string(),
+            Self::Digraph => write!(f, "digraph"),
         }
     }
 }

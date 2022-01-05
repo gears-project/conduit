@@ -28,7 +28,7 @@ macro_rules! register_graphql_doc {
 }
 
 use crate::doc::document::DigraphDocument;
-use crate::model::digraph::{Digraph, DigraphMessage, NodeSettings, LinkSettings};
+use crate::model::digraph::{Digraph, DigraphMessage, LinkSettings, NodeSettings};
 
 register_graphql_doc!(DigraphDocument, Digraph);
 
@@ -226,7 +226,7 @@ mod test {
 
     use super::*;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_schema() -> std::io::Result<()> {
         let schema = Schema::new(Query, EmptyMutation, EmptySubscription);
         let res = schema.execute("{ add(a: 10, b: 20) }").await;
