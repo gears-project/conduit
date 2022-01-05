@@ -4,7 +4,7 @@ use async_graphql::{EmptySubscription, Schema};
 use async_graphql::{Request, Response};
 
 use axum::response::IntoResponse;
-use axum::{extract::Extension, handler::get, response::Html, AddExtensionLayer, Json, Router};
+use axum::{extract::Extension, routing::get, response::Html, AddExtensionLayer, Json, Router};
 
 use std::env;
 
