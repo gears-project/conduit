@@ -9,14 +9,10 @@ async fn test_sqlite_in_memory() -> std::io::Result<()> {
     let storage = Sqlite::setup(":memory:".into())
         .await
         .expect("The sqlite storage to be set up");
-    assert_eq!(
-        storage
-            .migrate()
-            .await
-            .expect("The sqlite storage to be migrated"),
-        ()
-    );
-
+    storage
+        .migrate()
+        .await
+        .expect("The sqlite storage to be migrated");
     Ok(())
 }
 
@@ -34,7 +30,7 @@ async fn test_sqlite_on_disk() -> std::io::Result<()> {
     )
     .await
     .expect("The sqlite storage to be set up");
-    assert_eq!(storage.migrate().await.expect("Migrations to be run"), ());
+    storage.migrate().await.expect("Migrations to be run");
 
     Ok(())
 }

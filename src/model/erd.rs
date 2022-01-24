@@ -1,14 +1,8 @@
 use crate::model::digraph::Digraph;
 use std::{error, fmt};
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct ERD(Digraph);
-
-impl Default for ERD {
-    fn default() -> Self {
-        Self(Digraph::default())
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub enum DomainError {
