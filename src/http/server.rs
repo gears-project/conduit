@@ -5,6 +5,7 @@ use async_graphql::{Request, Response};
 
 use axum::response::IntoResponse;
 use axum::{extract::Extension, routing::get, response::Html, AddExtensionLayer, Json, Router};
+use std::net::SocketAddr;
 
 use std::env;
 
@@ -57,7 +58,8 @@ pub async fn serve() -> Result<(), ()> {
 
     println!("Playground: http://{}", listen_addr);
 
-    match axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    let sock_addr: SocketAddr = listen_addr.parse().unwrap();
+    match axum::Server::bind(&sock_addr)
         .serve(app.into_make_service())
         .await
     {
