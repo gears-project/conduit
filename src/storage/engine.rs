@@ -48,7 +48,10 @@ pub trait Engine: Send + Sync {
     ) -> Result<(), EngineError>;
     async fn delete_document(&self, id: &Uuid) -> Result<(), EngineError>;
 
-    async fn get_projects(&self, params: Option<QueryRequest<ProjectField>>) -> Result<QueryResponse<Project>, EngineError>;
+    async fn get_projects(
+        &self,
+        params: Option<QueryRequest<ProjectField>>,
+    ) -> Result<QueryResponse<Project>, EngineError>;
     async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError>;
     async fn store_project(&self, doc: Project) -> Result<(), EngineError>;
     async fn update_project(&self, doc: Project) -> Result<(), EngineError>;
@@ -122,7 +125,10 @@ impl EngineContainer {
         self.engine.delete_document(id).await
     }
 
-    pub async fn get_projects(&self, params: Option<QueryRequest<ProjectField>>) -> Result<QueryResponse<Project>, EngineError> {
+    pub async fn get_projects(
+        &self,
+        params: Option<QueryRequest<ProjectField>>,
+    ) -> Result<QueryResponse<Project>, EngineError> {
         self.engine.get_projects(params).await
     }
     pub async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError> {
