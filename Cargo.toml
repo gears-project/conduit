@@ -16,6 +16,7 @@ async-trait = "0.1"
 async-graphql = { version = "3.0", features = ["log", "tracing", "uuid", "chrono", "apollo_tracing"] }
 # slab = "0.4.3"
 axum = { version = "0.4.3", features = ["ws", "headers"] }
+chrono = "0.4.19"
 
 tracing = "0.1"
 futures = "0.3"

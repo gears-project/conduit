@@ -1,13 +1,14 @@
 use crate::doc::change::Change;
 use crate::doc::document::{DocType, RawDocument};
-use crate::doc::project::Project;
-use crate::storage::engine::{Engine, EngineError};
+use crate::doc::project::{Project, ProjectField};
+use crate::storage::engine::{Engine, EngineError, QueryResponse, QueryRequest, QueryResponseMeta};
 
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePool;
 use std::fs::File;
 use std::path::Path;
 use uuid::Uuid;
+use chrono::NaiveDateTime;
 
 #[derive(Debug)]
 pub struct Sqlite {
@@ -228,14 +229,20 @@ impl Engine for Sqlite {
         Ok(())
     }
 
-    async fn get_projects(&self) -> Result<Vec<Project>, EngineError> {
+    async fn get_projects(&self, params: Option<QueryRequest<ProjectField>>) -> Result<QueryResponse<Project>, EngineError> {
         let dbdocs = sqlx::query_as::<_, DbProject>("SELECT * FROM projects")
             .fetch_all(&self.pool)
             .await?;
 
         let docs: Vec<Project> = dbdocs.iter().map(|e| e.into()).collect();
 
-        Ok(docs)
+        Ok(QueryResponse::<Project> {
+            data: docs,
+            meta: QueryResponseMeta {
+                offset: Some(0),
+                total: Some(0),
+            }
+        })
     }
 
     async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError> {

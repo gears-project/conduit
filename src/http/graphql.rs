@@ -94,8 +94,8 @@ impl Query {
 
     async fn projects(&self, ctx: &Context<'_>) -> FieldResult<Vec<Project>> {
         let storage = ctx.data::<EngineContainer>().expect("To get a container");
-        let projects = storage.get_projects().await?;
-        Ok(projects)
+        let response = storage.get_projects(None).await?;
+        Ok(response.data)
     }
 }
 

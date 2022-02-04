@@ -2,10 +2,40 @@ use std::fmt;
 
 use crate::doc::change::Change;
 use crate::doc::document::{DocType, RawDocument};
-use crate::doc::project::Project;
+use crate::doc::project::{Project, ProjectField};
 use async_trait::async_trait;
 use json_patch::diff;
 use uuid::Uuid;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct QueryRequest<T> {
+    pub page: Option<Pagination>,
+    pub sort: Option<Vec<(T, Direction)>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct Pagination {
+    pub limit: Option<i32>,
+    pub offset: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum Direction {
+    Asc,
+    Desc,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct QueryResponseMeta {
+    pub offset: Option<i32>,
+    pub total: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct QueryResponse<T> {
+    pub data: Vec<T>,
+    pub meta: QueryResponseMeta,
+}
 
 #[async_trait]
 pub trait Engine: Send + Sync {
@@ -18,7 +48,7 @@ pub trait Engine: Send + Sync {
     ) -> Result<(), EngineError>;
     async fn delete_document(&self, id: &Uuid) -> Result<(), EngineError>;
 
-    async fn get_projects(&self) -> Result<Vec<Project>, EngineError>;
+    async fn get_projects(&self, params: Option<QueryRequest<ProjectField>>) -> Result<QueryResponse<Project>, EngineError>;
     async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError>;
     async fn store_project(&self, doc: Project) -> Result<(), EngineError>;
     async fn update_project(&self, doc: Project) -> Result<(), EngineError>;
@@ -92,8 +122,8 @@ impl EngineContainer {
         self.engine.delete_document(id).await
     }
 
-    pub async fn get_projects(&self) -> Result<Vec<Project>, EngineError> {
-        self.engine.get_projects().await
+    pub async fn get_projects(&self, params: Option<QueryRequest<ProjectField>>) -> Result<QueryResponse<Project>, EngineError> {
+        self.engine.get_projects(params).await
     }
     pub async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError> {
         self.engine.get_project(id).await

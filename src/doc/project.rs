@@ -10,6 +10,14 @@ pub struct Project {
     pub body: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub enum ProjectField {
+    Name,
+    CreatedAt,
+    UpdatedAt,
+    Version,
+}
+
 impl Project {
     pub fn new(owner_id: Uuid) -> Self {
         Self {
