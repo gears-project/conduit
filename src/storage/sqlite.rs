@@ -4,11 +4,12 @@ use crate::doc::project::{Project, ProjectField};
 use crate::storage::engine::{Engine, EngineError, QueryRequest, QueryResponse, QueryResponseMeta};
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use sqlx::sqlite::SqlitePool;
 use std::fs::File;
 use std::path::Path;
 use uuid::Uuid;
+
+use crate::doc::common::DateTime;
 
 #[derive(Debug)]
 pub struct Sqlite {
@@ -92,6 +93,8 @@ pub struct DbProject {
     pub name: String,
     pub version: i32,
     pub body: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl From<DbProject> for Project {
@@ -102,6 +105,8 @@ impl From<DbProject> for Project {
             name: doc.name,
             version: doc.version,
             body: doc.body,
+            created_at: doc.created_at,
+            updated_at: doc.updated_at,
         }
     }
 }
@@ -114,6 +119,8 @@ impl From<&DbProject> for Project {
             name: doc.name.clone(),
             version: doc.version,
             body: doc.body.clone(),
+            created_at: doc.created_at,
+            updated_at: doc.updated_at,
         }
     }
 }

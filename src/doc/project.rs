@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use super::common::DateTime;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Project {
@@ -8,6 +9,8 @@ pub struct Project {
     pub version: i32,
     pub name: String,
     pub body: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -26,6 +29,8 @@ impl Project {
             name: "New Project".to_string(),
             version: 0,
             body: "".into(),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
         }
     }
 }
