@@ -42,6 +42,8 @@ pub struct DbDocument {
     pub doctype: String,
     pub version: i32,
     pub body: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl From<RawDocument> for DbDocument {
@@ -54,6 +56,8 @@ impl From<RawDocument> for DbDocument {
             doctype: doc.doctype,
             version: doc.version,
             body: serde_json::to_string(&doc.body).expect("Body to be serializable"),
+            created_at: doc.created_at,
+            updated_at: doc.updated_at,
         }
     }
 }
@@ -68,6 +72,8 @@ impl From<DbDocument> for RawDocument {
             doctype: doc.doctype,
             version: doc.version,
             body: serde_json::from_str(&doc.body).expect("Body to be deserializable"),
+            created_at: doc.created_at,
+            updated_at: doc.updated_at,
         }
     }
 }
@@ -82,6 +88,8 @@ impl From<&DbDocument> for RawDocument {
             doctype: doc.doctype.clone(),
             version: doc.version,
             body: serde_json::from_str(&doc.body).expect("Body to be deserializable"),
+            created_at: doc.created_at,
+            updated_at: doc.updated_at,
         }
     }
 }

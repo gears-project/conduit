@@ -2,6 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use super::common::DateTime;
 
 use super::project::Project;
 use crate::model::digraph::Digraph;
@@ -15,6 +16,8 @@ pub struct Document<T> {
     pub doctype: String,
     pub version: i32,
     pub body: T,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl<T> Document<T>
@@ -31,7 +34,6 @@ pub type RawDocument = Document<serde_json::Value>;
 
 macro_rules! register_doc {
     ($source:ty, $name:ident, $doctype:expr) => {
-        // use chrono::NaiveDateTime;
 
         pub type $name = Document<$source>;
 
@@ -53,8 +55,8 @@ macro_rules! register_doc {
                     name: "New".to_owned(),
                     doctype: stringify!($doctype).to_owned(),
                     version: 0,
-                    // created_at: NaiveDateTime::from_timestamp(0, 0),
-                    // updated_at: NaiveDateTime::from_timestamp(0, 0),
+                    created_at: chrono::Utc::now(),
+                    updated_at: chrono::Utc::now(),
                     body: <$source>::default(),
                 }
             }
@@ -70,6 +72,8 @@ macro_rules! register_doc {
                     name: doc.name,
                     version: doc.version,
                     body: serde_json::to_value(&doc.body).expect("Document to be serializable"),
+                    created_at: doc.created_at,
+                    updated_at: doc.updated_at,
                 }
             }
         }
@@ -85,6 +89,8 @@ macro_rules! register_doc {
                     version: doc.version,
                     body: serde_json::from_value(doc.body)
                         .expect("Serialized data to be deserializable"),
+                    created_at: doc.created_at,
+                    updated_at: doc.updated_at,
                 }
             }
         }
@@ -100,6 +106,8 @@ macro_rules! register_doc {
                     version: doc.version,
                     body: serde_json::from_value(doc.body.clone())
                         .expect("Serialized data to be deserializable"),
+                    created_at: doc.created_at,
+                    updated_at: doc.updated_at,
                 }
             }
         }
