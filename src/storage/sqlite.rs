@@ -233,7 +233,32 @@ impl Engine for Sqlite {
         &self,
         params: Option<QueryRequest<ProjectField>>,
     ) -> Result<QueryResponse<Project>, EngineError> {
-        let dbdocs = sqlx::query_as::<_, DbProject>("SELECT * FROM projects")
+
+        use std::fmt::Write;
+        let mut query = "SELECT * FROM projects".to_string();
+        match params {
+            Some(params) => {
+                match params.page {
+                    Some(page) => {
+                        match page.limit {
+                            Some(limit) => {
+                                write!(query, " LIMIT {} ", limit).expect("String operation to succeed");
+                            }
+                            None => { }
+                        }
+                        match page.offset {
+                            Some(offset) => {
+                                write!(query, " OFFSET {} ", offset).expect("String operation to succeed");
+                            }
+                            None => { }
+                        }
+                    }
+                    None => { }
+                }
+            }
+            None => { }
+        };
+        let dbdocs = sqlx::query_as::<_, DbProject>(&query)
             .fetch_all(&self.pool)
             .await?;
 
