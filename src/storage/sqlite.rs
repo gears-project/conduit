@@ -4,7 +4,8 @@ use crate::doc::project::{Project, ProjectField};
 use crate::storage::engine::{Engine, EngineError, QueryRequest, QueryResponse, QueryResponseMeta};
 
 use async_trait::async_trait;
-use sqlx::sqlite::SqlitePool;
+// use sqlx::sqlite::{SqlitePool, SqliteConnectOptions, SqliteJournalMode};
+use sqlx::sqlite::{SqlitePool};
 use std::fs::File;
 use std::path::Path;
 use uuid::Uuid;
@@ -24,6 +25,14 @@ impl Sqlite {
             let _ = File::create(&url)?;
         }
         let pool = SqlitePool::connect(&url).await?;
+        /*
+        use sqlx::ConnectOptions;
+        let mut options = SqliteConnectOptions::new();
+        options.log_statements(tracing::log::LevelFilter::Trace);
+        options.journal_mode(SqliteJournalMode::Wal);
+        let pool = SqlitePool::connect_with(options).await?;
+        */
+
         Ok(Self { url, pool })
     }
 
@@ -251,19 +260,24 @@ impl Engine for Sqlite {
 
         use std::fmt::Write;
         let mut query = "SELECT * FROM projects".to_string();
+        let query_agg = "SELECT COUNT(*) FROM projects".to_string();
+
+        let mut limit = 100;
+        let mut offset = 0;
+
         match params {
             Some(params) => {
                 match params.page {
                     Some(page) => {
                         match page.limit {
-                            Some(limit) => {
-                                write!(query, " LIMIT {} ", limit).expect("String operation to succeed");
+                            Some(l) => {
+                                limit = l
                             }
                             None => { }
                         }
                         match page.offset {
-                            Some(offset) => {
-                                write!(query, " OFFSET {} ", offset).expect("String operation to succeed");
+                            Some(o) => {
+                                offset = o
                             }
                             None => { }
                         }
@@ -273,17 +287,29 @@ impl Engine for Sqlite {
             }
             None => { }
         };
+
+        if limit != 0 {
+            write!(query, " LIMIT {} ", limit).expect("String operation to succeed");
+        }
+        write!(query, " OFFSET {} ", offset).expect("String operation to succeed");
+
         let dbdocs = sqlx::query_as::<_, DbProject>(&query)
             .fetch_all(&self.pool)
             .await?;
 
         let docs: Vec<Project> = dbdocs.iter().map(|e| e.into()).collect();
 
+        let agg = sqlx::query!(
+            "SELECT COUNT(*) as count FROM projects"
+        )
+            .fetch_one(&self.pool)
+            .await?;
+
         Ok(QueryResponse::<Project> {
             data: docs,
             meta: QueryResponseMeta {
-                offset: Some(0),
-                total: Some(0),
+                offset: Some(offset),
+                total: Some(agg.count),
             },
         })
     }

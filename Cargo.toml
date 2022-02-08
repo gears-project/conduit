@@ -18,6 +18,7 @@ async-graphql = { version = "3.0", features = ["log", "tracing", "uuid", "chrono
 axum = { version = "0.4.3", features = ["ws", "headers"] }
 chrono = { version = "0.4.19", features = ["serde"] }
 
+# log = "0.4"
 tracing = "0.1"
 futures = "0.3"
 env_logger = "0.7.1"
@@ -25,6 +26,5 @@ env_logger = "0.7.1"
 
 [dev-dependencies]
 tempdir =  "0.3"
-log = "0.4"
 assert-json-diff = "1.1.0"
 surf = "2.0.0-alpha.5"

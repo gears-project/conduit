@@ -652,7 +652,6 @@ dependencies = [
  "env_logger",
  "futures",
  "json-patch",
- "log",
  "serde",
  "serde_json",
  "sqlx",

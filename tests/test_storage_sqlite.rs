@@ -72,11 +72,23 @@ async fn test_sqlite_engine_functions() -> std::io::Result<()> {
         .await
         .expect("The stored document to be retrieved");
 
-    assert_eq!(raw_doc, retrieved_raw_doc);
+    assert_eq!(raw_doc.id, retrieved_raw_doc.id);
+    assert_eq!(raw_doc.project_id, retrieved_raw_doc.project_id);
+    assert_eq!(raw_doc.owner_id, retrieved_raw_doc.owner_id);
+    assert_eq!(raw_doc.name, retrieved_raw_doc.name);
+    assert_eq!(raw_doc.doctype, retrieved_raw_doc.doctype);
+    assert_eq!(raw_doc.version, retrieved_raw_doc.version);
+    assert_eq!(raw_doc.body, retrieved_raw_doc.body);
 
     let doc_retrieved: DigraphDocument = retrieved_raw_doc.into();
 
-    assert_eq!(doc, doc_retrieved);
+    assert_eq!(doc.id, doc_retrieved.id);
+    assert_eq!(doc.project_id, doc_retrieved.project_id);
+    assert_eq!(doc.owner_id, doc_retrieved.owner_id);
+    assert_eq!(doc.name, doc_retrieved.name);
+    assert_eq!(doc.doctype, doc_retrieved.doctype);
+    assert_eq!(doc.version, doc_retrieved.version);
+    assert_eq!(doc.body, doc_retrieved.body);
 
     Ok(())
 }
