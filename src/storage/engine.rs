@@ -2,16 +2,30 @@ use std::fmt;
 
 use crate::doc::change::Change;
 use crate::doc::document::{DocType, RawDocument};
-use crate::doc::project::{Project, ProjectField};
+use crate::doc::project::{Project, ProjectFields};
 use async_trait::async_trait;
 use json_patch::diff;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct QueryRequest<T> {
+pub struct QueryRequest<T> where T: Default {
     pub page: Option<Pagination>,
     pub sort: Option<Vec<(T, Direction)>>,
 }
+
+impl<T> Default for QueryRequest<T> where T : Default {
+    fn default() -> Self {
+        Self {
+            page: Some(Pagination {
+                limit: Some(100),
+                offset: Some(0),
+            }),
+            sort: None,
+        }
+    }
+}
+
+
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Pagination {
@@ -50,7 +64,7 @@ pub trait Engine: Send + Sync {
 
     async fn get_projects(
         &self,
-        params: Option<QueryRequest<ProjectField>>,
+        params: QueryRequest<ProjectFields>,
     ) -> Result<QueryResponse<Project>, EngineError>;
     async fn get_project(&self, id: &Uuid) -> Result<Project, EngineError>;
     async fn store_project(&self, doc: Project) -> Result<(), EngineError>;
@@ -127,7 +141,7 @@ impl EngineContainer {
 
     pub async fn get_projects(
         &self,
-        params: Option<QueryRequest<ProjectField>>,
+        params: QueryRequest<ProjectFields>,
     ) -> Result<QueryResponse<Project>, EngineError> {
         self.engine.get_projects(params).await
     }

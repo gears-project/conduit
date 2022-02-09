@@ -1,6 +1,6 @@
 use crate::doc::change::Change;
 use crate::doc::document::{DocType, RawDocument};
-use crate::doc::project::{Project, ProjectField};
+use crate::doc::project::{Project, ProjectFields};
 use crate::storage::engine::{Engine, EngineError, QueryRequest, QueryResponse, QueryResponseMeta};
 
 use async_trait::async_trait;
@@ -255,7 +255,7 @@ impl Engine for Sqlite {
 
     async fn get_projects(
         &self,
-        params: Option<QueryRequest<ProjectField>>,
+        params: QueryRequest<ProjectFields>,
     ) -> Result<QueryResponse<Project>, EngineError> {
 
         use std::fmt::Write;
@@ -265,33 +265,30 @@ impl Engine for Sqlite {
         let mut limit = 100;
         let mut offset = 0;
 
-        match params {
-            Some(params) => {
-                match params.page {
-                    Some(page) => {
-                        match page.limit {
-                            Some(l) => {
-                                limit = l
-                            }
-                            None => { }
-                        }
-                        match page.offset {
-                            Some(o) => {
-                                offset = o
-                            }
-                            None => { }
-                        }
+        match params.page {
+            Some(page) => {
+                match page.limit {
+                    Some(l) => {
+                        limit = l
+                    }
+                    None => { }
+                }
+                match page.offset {
+                    Some(o) => {
+                        offset = o
                     }
                     None => { }
                 }
             }
             None => { }
-        };
+        }
 
         if limit != 0 {
             write!(query, " LIMIT {} ", limit).expect("String operation to succeed");
         }
         write!(query, " OFFSET {} ", offset).expect("String operation to succeed");
+
+        println!("Query {}", &query);
 
         let dbdocs = sqlx::query_as::<_, DbProject>(&query)
             .fetch_all(&self.pool)

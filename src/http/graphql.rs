@@ -1,8 +1,9 @@
 use crate::doc::document::{DocType, RawDocument};
-use crate::doc::project::Project;
-use crate::storage::engine::{EngineContainer, EngineError};
+use crate::doc::project::{Project, ProjectFields};
+use crate::storage::engine::{EngineContainer, EngineError, QueryRequest};
 use async_graphql::{Context, FieldResult, Object};
 use uuid::Uuid;
+use std::default::Default;
 
 macro_rules! register_graphql_doc {
     ($doc:ty, $body:ty) => {
@@ -94,7 +95,7 @@ impl Query {
 
     async fn projects(&self, ctx: &Context<'_>) -> FieldResult<Vec<Project>> {
         let storage = ctx.data::<EngineContainer>().expect("To get a container");
-        let response = storage.get_projects(None).await?;
+        let response = storage.get_projects(QueryRequest::<ProjectFields>::default()).await?;
         Ok(response.data)
     }
 }

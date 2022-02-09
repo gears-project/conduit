@@ -14,11 +14,18 @@ pub struct Project {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum ProjectField {
+pub enum ProjectFields {
+    Id,
     Name,
     CreatedAt,
     UpdatedAt,
     Version,
+}
+
+impl Default for ProjectFields {
+    fn default() -> Self {
+        Self::Id
+    }
 }
 
 impl Project {
